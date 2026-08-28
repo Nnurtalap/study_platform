@@ -4,7 +4,7 @@ from fastapi import (
     APIRouter,
     Depends,
 )
-from core.auntification.fastapi_users import fastapi_users
+from core.authentication.fastapi_users import fastapi_users
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import db_helper

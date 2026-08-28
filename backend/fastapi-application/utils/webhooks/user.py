@@ -17,7 +17,7 @@ async def send_new_user_notification(user: User) -> None:
     ).model_dump()
     try:
         log.info('Notify user created with data: %s', wh_data)
-        async with aiohttp.ClientSession(timeout=5) as session:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=5)) as session:
             async with session.post(WEBHOOK_URL, json=wh_data) as response:
                 if response.status == 200:
                     data = await response.json()
