@@ -5,7 +5,7 @@ from core.config import settings
 
 from .users import router as users_router
 from .auth import router as auth_router
-
+from .submissions import router as submission_router
 http_bearer = HTTPBearer(auto_error=False)
 
 router = APIRouter(
@@ -18,4 +18,8 @@ router.include_router(
 
 router.include_router(
     auth_router,
+)
+
+router.include_router(
+    submission_router
 )

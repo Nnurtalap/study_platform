@@ -15,4 +15,4 @@ class AIAnalysis(Base, IntIdPkMixin):
     weak_topics: Mapped[list[str]] = mapped_column(JSON, default=list)
 
     submission_id: Mapped[int] = mapped_column(ForeignKey("submissions.id", ondelete="CASCADE"), unique=True)
-    submitions: Mapped['Submission'] = relationship(back_populates='analys')
+    submissions: Mapped['Submission'] = relationship(back_populates='analys')

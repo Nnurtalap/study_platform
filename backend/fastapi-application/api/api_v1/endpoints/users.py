@@ -1,16 +1,10 @@
-from typing import Annotated
-
 from fastapi import (
     APIRouter,
-    Depends,
 )
 from core.authentication.fastapi_users import fastapi_users
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models import db_helper
 from core.schemas.user import (
     UserRead,
-    UserCreate,
     UserUpdate
 )
 from crud import users as users_crud

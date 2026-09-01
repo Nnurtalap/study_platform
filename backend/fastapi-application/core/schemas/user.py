@@ -16,4 +16,4 @@ class UserUpdate(schemas.BaseUserUpdate):
 
 class UserRegisterNotification(BaseModel):
     user: UserRead
-    ts: int
+    ts: int 
