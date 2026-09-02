@@ -61,15 +61,31 @@ export async function apiFetch<TResponse>(
     }
   }
 
+  const isRawBody =
+    typeof body === 'string' ||
+    body instanceof URLSearchParams ||
+    body instanceof FormData ||
+    body instanceof Blob;
+
+  let requestBody: BodyInit | undefined;
+  if (body === undefined) {
+    requestBody = undefined;
+  } else if (isRawBody) {
+    requestBody = body as BodyInit;
+  } else {
+    requestBody = JSON.stringify(body);
+  }
+
   let response: Response;
   try {
     response = await fetch(url, {
       ...init,
       headers: {
-        'Content-Type': 'application/json',
+        // FormData сам ставит boundary, URLSearchParams — свой Content-Type
+        ...(isRawBody ? {} : { 'Content-Type': 'application/json' }),
         ...headers,
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body: requestBody,
     });
   } catch {
     throw new ApiError(0, null, 'Не удалось связаться с сервером');

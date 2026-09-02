@@ -1,4 +1,4 @@
-import { api } from '../config';
+import { api, apiFetch } from '../config';
 import { RegisterRequest, User } from './types';
 
 export const AUTH_ENDPOINTS = {
@@ -11,4 +11,19 @@ export const AUTH_ENDPOINTS = {
 
 export function register(data: RegisterRequest): Promise<User> {
   return api.post<User>(AUTH_ENDPOINTS.register, data);
+}
+
+export type LoginResponse = {
+  access_token: string;
+  token_type: string;
+};
+
+export function login(email: string, password: string): Promise<LoginResponse> {
+  // fastapi-users ждёт OAuth2-форму: поля username + password
+  const form = new URLSearchParams({ username: email, password });
+
+  return apiFetch<LoginResponse>(AUTH_ENDPOINTS.login, {
+    method: 'POST',
+    body: form,
+  });
 }

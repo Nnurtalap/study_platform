@@ -1,24 +1,8 @@
 'use client';
 
 import { register } from '@/api/auth/auth';
-import { ApiError } from '@/api/config';
 import { useState } from 'react';
-
-function translateError(error: unknown): string {
-  if (!(error instanceof ApiError)) {
-    return 'Что то пошло не так, попробуйте позже.';
-  }
-
-  if (error.detail === 'REGISTER_USER_ALREADY_EXISTS') {
-    return 'Пользователь с такой почтой уже зарегистрирован';
-  }
-
-  if (error.status === 0) {
-    return 'Сервер недоступен';
-  }
-
-  return error.message;
-}
+import { translateError } from './translateError';
 
 export default function Register() {
   const [email, setEmail] = useState('');
