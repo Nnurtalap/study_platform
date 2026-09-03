@@ -27,3 +27,16 @@ async def create_task(session: AsyncSession, teacher: User, data: TaskCreate) ->
     await session.refresh(task)
     return task
 
+async def list_tasks(session: AsyncSession, topic_id: Optional[int] = None) -> List[Task]:
+    smtp = select(Task)
+    if topic_id is not None:
+        smtp = smtp.where(Task.topic_id == topic_id)
+    result = await session.execute(smtp.order_by(Task.id))
+    return list(result.scalars().all())
+
+async def get_task_or_404(session: AsyncSession, task_id: int) -> Task:
+    result = await session.execute(select(Task).where(Task.id == task_id))
+    task = result.scalar_one_or_none()
+    if task is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Task not found")
+    return task
