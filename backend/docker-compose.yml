@@ -73,6 +73,8 @@ services:
     depends_on:
       pg:
         condition: service_healthy
+    volumes:
+      - ./fastapi-application:/app/fastapi-application
 
 volumes:
   postgres_data:
