@@ -81,6 +81,10 @@ class Settings(BaseSettings):
         case_sensitive=False,
         env_nested_delimiter="__",
         env_prefix="APP_CONFIG__",
+        # В .env лежат и переменные без префикса APP_CONFIG__
+        # (например DEFAULT_EMAIL/DEFAULT_PASSWORD) — их нужно игнорировать,
+        # иначе pydantic падает с extra_forbidden.
+        extra="ignore",
     )
     run: RunConfig = RunConfig()
     api: ApiPrefix = ApiPrefix()

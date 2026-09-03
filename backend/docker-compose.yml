@@ -1,26 +1,15 @@
 services:
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    hostname: rabbitmq
-    container_name: rabbitmq
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: "guest"
-      RABBITMQ_DEFAULT_PASS: "guest"
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-
-  
   pg:
     image: postgres:16-alpine
     container_name: postgres_db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: app
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Nurtaa0077
     ports:
+      # 5433 на хосте -> 5432 в контейнере, чтобы не конфликтовать
+      # с локальным PostgreSQL, который уже слушает 5432
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -30,31 +19,62 @@ services:
       timeout: 3s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    hostname: rabbitmq
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: backend_pgadmin
+    restart: unless-stopped
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.org
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
     ports:
       - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      pg:
+        condition: service_healthy
 
   web:
     build: .
     container_name: my_running_app
+    restart: unless-stopped
     ports:
       - "8080:8000"
     env_file:
       - fastapi-application/.env
+    # Внутри сети compose база доступна по имени сервиса `pg` на порту 5432.
+    # Значение из .env перекрывается здесь, чтобы контейнер не зависел
+    # от того, на какой хост настроен .env для локального запуска.
     environment:
-      - DB_HOST=pg
-    # Сначала выполняем миграцию, затем запускаем Uvicorn/Gunicorn
-    command: sh -c "alembic upgrade head && gunicorn main:main_app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000"
+      APP_CONFIG__DB__URL: postgresql+asyncpg://postgres:Nurtaa0077@pg:5432/app
+    # Сначала выполняем миграции, затем запускаем Gunicorn с uvicorn-воркерами
+    command: sh -c "alembic upgrade head && gunicorn main:main_app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --workers 4 --timeout 900"
     depends_on:
       pg:
         condition: service_healthy
 
 volumes:
-  postgres_data: 
+  postgres_data:
+  pgadmin_data:
   rabbitmq-data:
