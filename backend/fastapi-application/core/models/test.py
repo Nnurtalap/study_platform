@@ -18,7 +18,7 @@ class Test(IntIdPkMixin, Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     created_by: Mapped["User"] = relationship()
-    tasks: Mapped[list["TestTask"]] = relationship(back_populates="test", order_by="TestTask.position")
+    tasks: Mapped[list["TestTask"]] = relationship(back_populates="test",  cascade="all, delete-orphan", order_by="TestTask.position")
     assignments: Mapped[List["TestAssignment"]] = relationship(
         back_populates="test", cascade="all, delete-orphan"
     )
