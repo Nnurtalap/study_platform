@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from core.models import Test, TestTask, Task, User
 from core.schemas.test import TestCreate, TestTaskCreate
 
-async def create_task(session: AsyncSession, teacher: User, data: TestCreate) -> Test:
+async def create_test(session: AsyncSession, teacher: User, data: TestCreate) -> Test:
     test = Test(title=data.title, description=data.description, created_by_id=teacher.id)
     session.add(test)
     await session.commit()
