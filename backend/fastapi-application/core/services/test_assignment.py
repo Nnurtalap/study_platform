@@ -40,7 +40,7 @@ async def create_assigment(
     return assignment
 
 async def get_assignment_or_404(session: AsyncSession, assignment_id: int) -> TestAssignment:
-    result = select(TestAssignment).where(TestAssignment.id == assignment_id)
+    result = await session.execute(select(TestAssignment).where(TestAssignment.id == assignment_id))
     assignment = result.scalar_one_or_none()
     if assignment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Assignment not found")
