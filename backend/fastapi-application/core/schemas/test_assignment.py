@@ -3,7 +3,7 @@ from typing import Optional, Self
 from pydantic import BaseModel, ConfigDict, model_validator
 from core.types.assignment_status import AssignmentStatus
 
-class TestAssigmentCreate(BaseModel):
+class TestAssignmenttCreate(BaseModel):
     student_id: Optional[int] = None
     group_id: Optional[int] = None
     due_date: Optional[datetime] = None
@@ -14,7 +14,7 @@ class TestAssigmentCreate(BaseModel):
             raise ValueError("Specify exactly one of student_id or group_id")
         return self 
 
-class TestAssigmentRead(BaseModel):
+class TestAssignmentRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     test_id: int
