@@ -3,7 +3,7 @@ from typing import Optional, Self
 from pydantic import BaseModel, ConfigDict, model_validator
 from core.types.assignment_status import AssignmentStatus
 
-class TestAssignmenttCreate(BaseModel):
+class TestAssignmentCreate(BaseModel):
     student_id: Optional[int] = None
     group_id: Optional[int] = None
     due_date: Optional[datetime] = None
