@@ -6,6 +6,7 @@ id, title, description /
 
 from core.models.base import Base
 from .mixins.int_id_pk import IntIdPkMixin
+from sqlalchemy import UniqueConstraint
 
 from typing import TYPE_CHECKING, List, Optional
 from sqlalchemy.orm import Mapped, mapped_column,relationship
@@ -19,6 +20,16 @@ if TYPE_CHECKING:
     from .user import User
 
 class Submission(Base, IntIdPkMixin):
+    __table_args__ = (
+        UniqueConstraint(
+            "student_id",
+            "test_assignment_id",
+            "task_id",
+            name = "uq_submission_student_assignment_task",
+
+        ),
+    )
+
     student_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     answer_text: Mapped[str] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String(20), default='pending', index=True)

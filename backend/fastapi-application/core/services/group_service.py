@@ -18,7 +18,7 @@ async def create_group(session: AsyncSession, data: GroupCreate, teacher: User) 
     return group
 
 async def get_group_owned_by_or_404(session: AsyncSession, group_id: int, teacher: User) -> Group:
-    result = session.execute(
+    result = await session.execute(
         select(Group)
         .options(selectinload(Group.enrollments).selectinload(Enrollment.student))
         .where(Group.id == group_id)

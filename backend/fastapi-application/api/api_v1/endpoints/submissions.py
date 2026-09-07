@@ -13,20 +13,20 @@ router = APIRouter(tags=['Submission'])
 
 
 @router.post(
-    '/test-assignment/{assigment_id}/submissions',
+    '/test-assignment/{assignment_id}/submissions',
     response_model=SubmissionRead,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_submission(
     submission_in: SubmissionCreate,
-    assigment: Annotated[TestAssignment, Depends(get_eligible_assigment)],
+    assignment: Annotated[TestAssignment, Depends(get_eligible_assigment)],
     student: Annotated[User, Depends(get_current_student)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)]
 ) -> SubmissionRead:
     submission = await create_student_submition(
         session=session,
         student_id=student.id,
-        assignment=assigment,
+        assignment=assignment,
         submission_in=submission_in
     )
 
@@ -34,7 +34,7 @@ async def create_submission(
 
     return submission
 
-@router.get('submission/{submission_id}')
+@router.get('/submission/{submission_id}')
 async def get_submission(
     submission_id: int, 
     student: Annotated[User, Depends(get_current_student)],

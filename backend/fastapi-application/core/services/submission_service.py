@@ -64,7 +64,8 @@ async def create_student_submition(
                 detail="You have already submitted an answer for this task",
             )
     await session.refresh(submission)
-    return submission 
+    await session.refresh(submission, attribute_names=["analys"])
+    return submission
 
 async def get_student_submission(
         session: AsyncSession,

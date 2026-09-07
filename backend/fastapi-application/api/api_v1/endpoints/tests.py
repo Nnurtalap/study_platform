@@ -27,7 +27,7 @@ async def get_test(
     return await get_test_owned_by_or_404(session, test_id, teacher)
 
 @router.post('/{test_id}/tasks',  response_model=TestTaskRead, status_code=status.HTTP_201_CREATED)
-async def add_task_to_test(
+async def add_task_to_test_endpoint(
     test_id: int,
     data: TestTaskCreate,
     teacher: Annotated[User, Depends(get_current_teacher)],

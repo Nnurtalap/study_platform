@@ -21,7 +21,7 @@ async def create_subject(session: AsyncSession, data: SubjectCreate) -> Subject:
 
 async def list_subjects(session: AsyncSession) -> List[Subject]:
     result = await session.execute(select(Subject).order_by(Subject.name))
-    return list[result.scalars().all()]
+    return list(result.scalars().all())
 
 async def get_subject_or_404(session: AsyncSession, subject_id: int) -> Subject:
     result = await session.execute(select(Subject).where(Subject.id == subject_id))
@@ -31,9 +31,9 @@ async def get_subject_or_404(session: AsyncSession, subject_id: int) -> Subject:
     return subject
 
 async def create_topic(session: AsyncSession, subject_id: int, data: TopicCreate) -> Topic:
-    await get_subject_or_404(subject_id)
+    await get_subject_or_404(session, subject_id)
 
-    topic = Topic(subject_id=subject_id, name=data.name)
+    topic = Topic(subject_id=subject_id, name=data.topic)
     session.add(topic)
     try:
         await session.commit()

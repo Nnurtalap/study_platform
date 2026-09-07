@@ -15,7 +15,7 @@ class StudentRead(BaseModel):
 class GroupRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    email: str
+    name: str
 
 class GroupWithStudentsRead(BaseModel):
     id: int

@@ -31,7 +31,7 @@ async def create_topic_by_subject_id(
 ):
     return await create_topic(session, subject_id, data)
 
-@router.post('/{subject_service}/topics', response_model=List[TopicRead])
+@router.get('/{subject_id}/topics', response_model=List[TopicRead])
 async def get_list_topics(
     subject_id: int,
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],

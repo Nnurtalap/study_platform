@@ -12,6 +12,7 @@ async def create_test(session: AsyncSession, teacher: User, data: TestCreate) ->
     session.add(test)
     await session.commit()
     await session.refresh(test)
+    await session.refresh(test, attribute_names=["tasks"])
     return test
 
 async def get_test_owned_by_or_404(session: AsyncSession, test_id: int, teacher: User) -> User:

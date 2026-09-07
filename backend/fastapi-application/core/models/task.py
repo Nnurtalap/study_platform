@@ -18,10 +18,20 @@ class Task(Base, IntIdPkMixin):
     title: Mapped[str] = mapped_column(String(255))
     body: Mapped[str] = mapped_column(Text)  # текст вопроса
     task_type: Mapped[TaskType] = mapped_column(
-        SAEnum(TaskType, name="task_type")
+    SAEnum(
+        TaskType,
+        name="task_type",
+        values_callable=lambda enum_cls: [item.value for item in enum_cls],
     )
+)
+
     difficulty: Mapped[TaskDifficulty] = mapped_column(
-        SAEnum(TaskDifficulty, name="task_difficulty"))
+        SAEnum(
+            TaskDifficulty,
+            name="task_difficulty",
+            values_callable=lambda enum_cls: [item.value for item in enum_cls],
+        )
+    )
     correct_answer: Mapped[str] = mapped_column(Text)  # для choice — id варианта(ов); для open_answer — эталон
 
     topic: Mapped["Topic"] = relationship(back_populates="tasks")

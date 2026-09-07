@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 class TestCreate(BaseModel):
     title: str
@@ -21,5 +21,8 @@ class TestRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     title: str
-    description: str
-    test_tasks: List[TestTaskRead] = []
+    description: str | None = None
+    test_tasks: List[TestTaskRead] = Field(
+        default_factory=list,
+        validation_alias="tasks",
+    )

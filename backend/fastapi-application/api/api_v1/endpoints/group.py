@@ -17,7 +17,7 @@ async def create_groups(
     teacher: Annotated[User, Depends(get_current_teacher)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ):
-    return await create_group(session, teacher, data)
+    return await create_group(session=session, teacher=teacher, data=data)
 
 
 @router.get("/{group_id}", response_model=GroupWithStudentsRead)
@@ -26,7 +26,11 @@ async def get_group(
     teacher: Annotated[User, Depends(get_current_teacher)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ):
-    return await get_group_with_students(session, group_id, teacher)
+    return await get_group_with_students(
+        session=session,
+        teacher=teacher,
+        group_id=group_id
+    )
 
 
 @router.post("/{group_id}/enrollments", status_code=status.HTTP_201_CREATED)

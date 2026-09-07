@@ -31,9 +31,13 @@ class TestAssignment(IntIdPkMixin, Base):
 
     due_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[AssignmentStatus] = mapped_column(
-        SAEnum(AssignmentStatus, name="assignment_status"),
-        default=AssignmentStatus.ASSIGNED,
-    )
+    SAEnum(
+        AssignmentStatus,
+        name="assignment_status",
+        values_callable=lambda enum_cls: [item.value for item in enum_cls],
+    ),
+    default=AssignmentStatus.ASSIGNED,
+)
 
     test: Mapped["Test"] = relationship(back_populates="assignments")
     assigned_by: Mapped['User'] = relationship(foreign_keys=[assigned_by_id])

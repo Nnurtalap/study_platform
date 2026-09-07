@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import TestAssignment, Group, Enrollment, User
 from core.schemas.test_assignment import TestAssignmentCreate
 from core.services.test_service import get_test_owned_by_or_404
-
+from core.models.user import UserRole
 
 async def create_assignment(
         session: AsyncSession, test_id: int, teacher: User, data: TestAssignmentCreate
@@ -16,10 +16,22 @@ async def create_assignment(
 
     if data.student_id is not None:
         student_result = await session.execute(select(User).where(data.student_id == User.id))
-        if student_result.scalar_one_or_none() is None:
+        student = student_result.scalar_one_or_none()
+        if student is None:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Student does not exist")
+        if student.role != UserRole.STUDENT:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                detail="This user is not a student",
+            )
     else:
-        group_result = await session.execute(select(Group).where(data.group_id == Group.id))
+        group_result = await session.execute(
+            select(Group)
+            .where(
+                data.group_id == Group.id,  
+                Group.teacher_id == teacher.id,
+            )
+        )
         if group_result.scalar_one_or_none() is None:
             raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Group does not exist or is not yours")
 
@@ -49,16 +61,16 @@ async def get_assignment_or_404(session: AsyncSession, assignment_id: int) -> Te
 async def is_assignment_is_accessible_to_student(
         session: AsyncSession, assignment: TestAssignment, student: User
 ) -> bool:
-    if assignment.student_id == User.id:
+    if assignment.student_id == student.id:
         return True
     if assignment.group_id is not None:
         result = await session.execute(
             select(Enrollment).where(
                 Enrollment.group_id == assignment.group_id,
-                Enrollment.student_id == assignment.student_id
+                Enrollment.student_id == student.id
             )
         )
-        return result.scalar_one_or_none is not None
+        return result.scalar_one_or_none() is not None
     return False 
 
 async def list_assignments_for_students(
@@ -73,4 +85,4 @@ async def list_assignments_for_students(
             )
         )
     )
-    return List[result.scalars().all()]
+    return list(result.scalars().all())

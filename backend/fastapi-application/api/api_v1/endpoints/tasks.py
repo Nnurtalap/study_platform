@@ -11,7 +11,7 @@ from api.api_v1.dependencies.authentification.roles import get_current_teacher
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 
-@router.post('', response_model=TaskCreate, status_code=status.HTTP_201_CREATED)
+@router.post('', response_model=TaskRead, status_code=status.HTTP_201_CREATED)
 async def task_create(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     teacher: Annotated[User, Depends(get_current_teacher)],
@@ -20,7 +20,7 @@ async def task_create(
     return await create_task(session, teacher, data)
 
 @router.get("", response_model=List[TaskRead])
-async def list_tasks(
+async def get_tasks(
     _teacher: Annotated[User, Depends(get_current_teacher)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     topic_id: Optional[int] = None,
