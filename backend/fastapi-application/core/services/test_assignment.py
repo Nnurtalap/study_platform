@@ -9,7 +9,7 @@ from core.schemas.test_assignment import TestAssignmentCreate
 from core.services.test_service import get_test_owned_by_or_404
 
 
-async def create_assigment(
+async def create_assignment(
         session: AsyncSession, test_id: int, teacher: User, data: TestAssignmentCreate
 ) -> TestAssignment:
     await get_test_owned_by_or_404(session, test_id, teacher)
