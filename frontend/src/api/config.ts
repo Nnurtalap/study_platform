@@ -81,7 +81,6 @@ export async function apiFetch<TResponse>(
     response = await fetch(url, {
       ...init,
       headers: {
-        // FormData сам ставит boundary, URLSearchParams — свой Content-Type
         ...(isRawBody ? {} : { 'Content-Type': 'application/json' }),
         ...headers,
       },
