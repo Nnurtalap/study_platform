@@ -32,7 +32,7 @@ def get_current_admin(user: User = Depends(current_active_user)) -> User:
     Зависимость для получения текущего пользователя-админа.
     Superuser тоже имеет доступ.
     """
-    if user.role != UserRole.ADMIN and not user.is_superuser:
+    if not user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Это действие доступно только администраторам"
