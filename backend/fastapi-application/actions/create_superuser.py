@@ -11,8 +11,7 @@ from core.models import (
     User,
 )
 from fastapi_users.exceptions import UserAlreadyExists
-from core.schemas.user import UserCreate
-
+from core.schemas.user import BootstrapUserCreate as UserCreate
 # from fastapi_users.exceptions import UserAlreadyExists
 
 # get_async_session_context = contextlib.asynccontextmanager(get_async_session)
@@ -20,8 +19,7 @@ get_users_db_context = contextlib.asynccontextmanager(get_users_db)
 get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
 
 
-default_email = getenv("DEFAULT_EMAIL", "admin@admin.com")
-default_password = getenv("DEFAULT_PASSWORD", "abc")
+
 default_is_active = True
 default_is_superuser = True
 default_is_verified = True
@@ -39,12 +37,16 @@ async def create_user(
 
 
 async def create_superuser(
-    email: str = default_email,
-    password: str = default_password,
+    email: str,
+    password: str,
     is_active: bool = default_is_active,
     is_superuser: bool = default_is_superuser,
     is_verified: bool = default_is_verified,
 ):
+    if not email or not password:
+        raise RuntimeError(
+            "Set DEFAULT_EMAIL and DEFAULT_PASSWORD"
+        )
     user_create = UserCreate(
         email=email,
         password=password,
