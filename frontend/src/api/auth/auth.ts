@@ -19,7 +19,6 @@ export type LoginResponse = {
 };
 
 export function login(email: string, password: string): Promise<LoginResponse> {
-  // fastapi-users ждёт OAuth2-форму: поля username + password
   const form = new URLSearchParams({ username: email, password });
 
   return apiFetch<LoginResponse>(AUTH_ENDPOINTS.login, {
