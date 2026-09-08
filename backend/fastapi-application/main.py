@@ -10,7 +10,6 @@ from core.config import settings
 
 from api import router as api_router
 from core.models import db_helper
-from actions.create_superuser import create_superuser
 from core.schemas.user import UserRegisterNotification
 
 logging.basicConfig(
@@ -21,7 +20,6 @@ logging.basicConfig(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await create_superuser()
     # startup
     yield
     # shutdown
