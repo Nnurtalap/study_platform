@@ -17,8 +17,7 @@ export default function Register() {
     setIsloading(true);
 
     try {
-      const user = await register({ email, password, role: 'student' });
-      console.log('Пользователь создан', user);
+      const user = await register({ email, password });
       setIsDone(true);
     } catch (err) {
       setError(translateError(err));
@@ -27,7 +26,7 @@ export default function Register() {
     }
   }
 
-  if (isDone) return <p className="">Проверьте почту </p>;
+  if (isDone) return <p>Регистрация завершена. Теперь можно войти.</p>;
 
   return (
     <form onSubmit={handleSubmit}>
