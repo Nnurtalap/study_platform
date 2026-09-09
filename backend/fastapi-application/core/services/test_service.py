@@ -44,3 +44,25 @@ async def add_task_to_test(
         raise HTTPException(status.HTTP_409_CONFLICT, detail="This task is already in the test")
     await session.refresh(test_task)
     return test_task
+
+async def lock_owned_test(
+        session: AsyncSession, 
+        test_id: int, 
+        teacher: User
+) -> Test:
+    test = await session.execute(
+        select(Test)
+        .where(
+            Test.id == test_id,
+            Test.created_by_id == teacher.id
+        )
+        .with_for_update()
+    )
+
+    if test is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Test not found",
+        )
+
+    return test 

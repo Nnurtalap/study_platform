@@ -13,7 +13,7 @@ __all__ = (
     'Subject',
     'Group',
     'Enrollment',
-    'AssignmentStatus'
+    'AssignmentStudent'
 )
 
 from .access_token import AccessToken
@@ -30,4 +30,4 @@ from .test_assignment import TestAssignment
 from .subjects import Subject
 from .group import Group
 from .enrollment import Enrollment
-from .assignment_student import AssignmentStatus
+from .assignment_student import AssignmentStudent
