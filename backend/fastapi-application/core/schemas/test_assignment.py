@@ -21,7 +21,6 @@ class TestAssignmentRead(BaseModel):
     student_id: Optional[int]
     group_id: Optional[int]
     due_date: Optional[datetime]
-    status: AssignmentStatus
 
  
      
