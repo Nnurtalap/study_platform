@@ -2,7 +2,10 @@ import logging
 from typing import TYPE_CHECKING, Optional
 from fastapi import HTTPException
 from fastapi_users.exceptions import InvalidPasswordException
+from sqlalchemy import delete as sql_delete, select
+from sqlalchemy.exc import IntegrityError
 
+from core.models import AccessToken, AssignmentStudent
 from core.types.user_id import UserIdType
 from fastapi_users import BaseUserManager, IntegerIDMixin
 
@@ -86,3 +89,87 @@ class UserManager(IntegerIDMixin, BaseUserManager[User, UserIdType]):
              safe,
              request
         )
+
+    async def _revoke_access_tokens(self, user_id: int) -> None:
+        session = self.user_db.session
+
+        try:
+            await session.execute(
+                sql_delete(AccessToken).where(
+                    AccessToken.user_id == user_id
+                )
+            )
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+    async def on_after_reset_password(
+        self,
+        user: User,
+        request=None,
+    ):
+        await self._revoke_access_tokens(user.id)
+
+        log.info(
+            "Access tokens revoked after password reset",
+            extra={"user_id": user.id},
+        )
+
+    async def on_after_update(
+        self,
+        user: User,
+        update_dict: dict,
+        request=None,
+    ):
+        password_changed = "password" in update_dict
+        account_disabled = update_dict.get("is_active") is False
+
+        if password_changed or account_disabled:
+            await self._revoke_access_tokens(user.id)
+
+    async def delete(
+        self,
+        user: User,
+        request=None,
+    ) -> None:
+        session = self.user_db.session
+
+        participant_id = await session.scalar(
+            select(AssignmentStudent.id)
+            .where(AssignmentStudent.student_id == user.id)
+            .limit(1)
+        )
+
+        if participant_id is not None:
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "User has assignment history. "
+                    "Deactivate the account instead."
+                ),
+            )
+
+        try:
+            await super().delete(
+                user,
+                request=request,
+            )
+        except IntegrityError as exc:
+            await session.rollback()
+
+            sqlstate = (
+                getattr(exc.orig, "sqlstate", None)
+                or getattr(exc.orig, "pgcode", None)
+            )
+
+            if sqlstate != "23503":
+                raise
+
+            raise HTTPException(
+                status_code=409,
+                detail=(
+                    "User has related records. "
+                    "Deactivate the account instead."
+                ),
+            ) from exc
