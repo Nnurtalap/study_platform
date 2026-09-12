@@ -108,31 +108,3 @@ async def get_assignment_or_404(session: AsyncSession, assignment_id: int) -> Te
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Assignment not found")
     return assignment
 
-async def is_assignment_is_accessible_to_student(
-        session: AsyncSession, assignment: TestAssignment, student: User
-) -> bool:
-    if assignment.student_id == student.id:
-        return True
-    if assignment.group_id is not None:
-        result = await session.execute(
-            select(Enrollment).where(
-                Enrollment.group_id == assignment.group_id,
-                Enrollment.student_id == student.id
-            )
-        )
-        return result.scalar_one_or_none() is not None
-    return False 
-
-async def list_assignments_for_students(
-        session: AsyncSession, student: User
-) -> List[TestAssignment]:
-    group_ids_subquery = select(Enrollment.group_id).where(Enrollment.student_id == student.id)
-    result = await session.execute(
-        select(TestAssignment).where(
-            or_(
-                TestAssignment.student_id == student.id, 
-                TestAssignment.group_id.in_(group_ids_subquery)
-            )
-        )
-    )
-    return list(result.scalars().all())

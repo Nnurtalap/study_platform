@@ -11,37 +11,19 @@ from .tasks import router as task_router
 from .tests import router as test_router
 from .submissions import router as submission_router
 from .test_assignment import router as assignment_router
+from .student_assignments import router as student_assignments_router
 http_bearer = HTTPBearer(auto_error=False)
 
 router = APIRouter(
     prefix=settings.api.v1.prefix,
     dependencies=[Depends(http_bearer)]
 )
-router.include_router(
-    users_router,
-)
-
-router.include_router(
-    auth_router,
-)
-
-router.include_router(
-    submission_router
-)
-
-router.include_router(
-    subject_router
-)
-
-router.include_router(
-    group_router
-)
-router.include_router(
-    task_router
-)
-router.include_router(
-    test_router
-)
-router.include_router(
-    assignment_router
-)
+router.include_router(users_router,)
+router.include_router(auth_router,)
+router.include_router(submission_router)
+router.include_router(subject_router)
+router.include_router(group_router)
+router.include_router(task_router)
+router.include_router(test_router)
+router.include_router(assignment_router)
+router.include_router(student_assignments_router)

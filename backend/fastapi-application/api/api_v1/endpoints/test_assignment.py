@@ -25,9 +25,3 @@ async def assignment_create(
     return await create_assignment(session, test_id, teacher, data)
 
 
-@router.get("/me/assignments", response_model=List[TestAssignmentRead])
-async def list_my_assignments(
-    student: Annotated[User, Depends(get_current_student)],
-    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-):
-    return await list_assignments_for_students(session, student)
