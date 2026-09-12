@@ -25,7 +25,7 @@ async def get_tasks(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     topic_id: Optional[int] = None,
 ):
-    return await list_tasks(session, topic_id)
+    return await list_tasks(session, _teacher, topic_id)
 
 
 @router.get("/{task_id}", response_model=TaskRead)
@@ -34,4 +34,4 @@ async def get_task(
     _teacher: Annotated[User, Depends(get_current_teacher)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ):
-    return await get_task_or_404(session, task_id)
+    return await get_task_or_404(session, task_id, _teacher)

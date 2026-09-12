@@ -69,4 +69,9 @@ async def create_superuser(
 
 
 if __name__ == "__main__":
-    asyncio.run(create_superuser())
+    asyncio.run(
+        create_superuser(
+            email=getenv("DEFAULT_EMAIL"),
+            password=getenv("DEFAULT_PASSWORD"),
+        )
+    )

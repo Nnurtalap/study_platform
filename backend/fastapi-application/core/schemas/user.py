@@ -26,7 +26,19 @@ class BootstrapUserCreate(schemas.BaseUserCreate):
     role: UserRole = UserRole.ADMIN
     
 class UserUpdate(schemas.BaseUserUpdate):
+    model_config = ConfigDict(extra="forbid")
+
     role: Optional[UserRole] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_explicit_null(cls, data):
+        if isinstance(data, dict):
+            for field, value in data.items():
+                if value is None:
+                    raise ValueError(f"{field} cannot be null")
+
+        return data
 
 class UserRegisterNotification(BaseModel):
     user: UserRead

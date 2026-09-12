@@ -20,8 +20,8 @@ async def get_eligible_assigment(
 ) -> TestAssignment:
     assignment, _ = await get_progress(
         session,
-        assignment_id,
         student.id,
+        assignment_id,
     )
 
     return assignment

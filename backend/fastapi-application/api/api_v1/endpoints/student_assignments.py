@@ -44,7 +44,7 @@ async def get_assignment(
     session: Session, 
     student: Student
 ):
-    return service.get_student_assignment(
+    return await service.get_student_assignment(
         session, assignment_id, student.id
     )
 
@@ -58,5 +58,5 @@ async def complete(
     student: Student,
 ):
     return await service.complete_assignment(
-        session, assignment_id, student.id
+        session, student.id, assignment_id
     )

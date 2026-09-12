@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import db_helper, User
 from core.schemas.test_assignment import TestAssignmentCreate, TestAssignmentRead
-from core.services.test_assignment import create_assignment, list_assignments_for_students
+from core.services.test_assignment import create_assignment
 from api.api_v1.dependencies.authentification.roles import get_current_teacher, get_current_student
 
 router = APIRouter(tags=["Test Assignments"])

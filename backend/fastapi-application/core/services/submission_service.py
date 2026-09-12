@@ -23,8 +23,8 @@ async def create_student_submition(
 ) -> Submission:
     assignment, progress = await get_progress(
         session,
-        assignment.id,
         student_id,
+        assignment.id,
         lock=True,
     )
 
