@@ -2,11 +2,12 @@ from datetime import datetime
 from typing import Optional, Self
 from pydantic import BaseModel, ConfigDict, model_validator
 from core.types.assignment_status import AssignmentStatus
+from pydantic import AwareDatetime
 
 class TestAssignmentCreate(BaseModel):
     student_id: Optional[int] = None
     group_id: Optional[int] = None
-    due_date: Optional[datetime] = None
+    due_date: AwareDatetime | None = None
 
     @model_validator(mode='after')
     def check_single_target(self) -> Self:

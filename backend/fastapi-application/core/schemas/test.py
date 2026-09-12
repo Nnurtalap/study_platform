@@ -7,9 +7,9 @@ class TestCreate(BaseModel):
     description: Optional[str] = None
 
 class TestTaskCreate(BaseModel):
-    task_id: int
-    position: int
-    points: int
+    task_id: int = Field(gt=0)
+    position: int = Field(gt=0)
+    points: int = Field(gt=0)
 
 class TestTaskRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
