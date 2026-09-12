@@ -8,7 +8,12 @@ from core.models import Submission, TestTask, TestAssignment, User
 from core.types.assignment_status import AssignmentStatus
 from core.types.submission_status import SubmissionStatus
 from core.schemas.submission import SubmissionCreate
+from datetime import datetime, timezone
 
+from core.services.student_assignment_service import (
+    get_progress,
+    require_open,
+)
 
 async def create_student_submition(
         session: AsyncSession,
@@ -16,6 +21,15 @@ async def create_student_submition(
         assignment: TestAssignment,
         submission_in: SubmissionCreate
 ) -> Submission:
+    assignment, progress = await get_progress(
+        session,
+        assignment.id,
+        student_id,
+        lock=True,
+    )
+
+    require_open(assignment, progress)
+
     task_in_test = await session.execute(
         select(TestTask).where(
             TestTask.test_id == assignment.test_id,
@@ -53,16 +67,30 @@ async def create_student_submition(
 
     session.add(submission)
 
-    if assignment.status == AssignmentStatus.ASSIGNED:
-        assignment.status = AssignmentStatus.IN_PROGRESS
+    if progress.status == AssignmentStatus.ASSIGNED:
+        progress.status = AssignmentStatus.IN_PROGRESS
+        progress.started_at = datetime.now(timezone.utc)
     try:
-            await session.commit()
-    except IntegrityError:
-            await session.rollback()
-            raise HTTPException(
-                status.HTTP_409_CONFLICT,
-                detail="You have already submitted an answer for this task",
-            )
+        await session.commit()
+    except IntegrityError as exc:
+        await session.rollback()
+
+        original = getattr(exc.orig, "__cause__", None)
+        constraint_name = getattr(
+            original,
+            "constraint_name",
+            None,
+        )
+
+        if constraint_name != (
+            "uq_submission_student_assignment_task"
+        ):
+            raise
+
+        raise HTTPException(
+            status_code=409,
+            detail="You have already submitted an answer for this task",
+        ) from exc
     await session.refresh(submission)
     await session.refresh(submission, attribute_names=["analys"])
     return submission
