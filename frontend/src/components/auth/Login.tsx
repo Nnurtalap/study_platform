@@ -1,58 +1,89 @@
 'use client';
 
 import { login } from '@/api/auth/auth';
+import { setAccessToken } from '@/api/auth/token';
+import Link from 'next/link';
 import { useState } from 'react';
+import { AuthHeading, AuthSuccess, AuthSwitch, FormError, SubmitButton } from './AuthUI';
+import { Field } from './Field';
 import { translateError } from './translateError';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsloading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDone, setIsDone] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
-    setIsloading(true);
+    setIsLoading(true);
 
     try {
       const { access_token } = await login(email, password);
-      localStorage.setItem('access_token', access_token);
+      setAccessToken(access_token);
       setIsDone(true);
     } catch (err) {
       setError(translateError(err));
     } finally {
-      setIsloading(false);
+      setIsLoading(false);
     }
   }
 
   if (isDone) {
-    return <p>Добро пожаловать</p>;
+    return (
+      <AuthSuccess eyebrow="Вход выполнен" title="С возвращением." href="/" actionLabel="На главную">
+        Вы вошли как <span className="font-medium text-ink">{email}</span>.
+      </AuthSuccess>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="email"
-        name="email"
-        autoComplete="email"
-        required
-        onChange={(e) => setEmail(e.target.value)}
-        value={email}
-      />
-      <input
-        type="password"
-        name="password"
-        autoComplete="current-password"
-        required
-        onChange={(e) => setPassword(e.target.value)}
-        value={password}
-      />
-      {error && <p className="text-red-600">{error}</p>}
-      <button type="submit" disabled={isLoading}>
-        {isLoading ? 'Выполняется вход' : 'Войти'}
-      </button>
-    </form>
+    <div className="auth-enter">
+      <AuthHeading index="01" eyebrow="Вход" title="Вход в аккаунт">
+        Введите почту и пароль, указанные при регистрации.
+      </AuthHeading>
+
+      <form onSubmit={handleSubmit} className="mt-12 space-y-9">
+        <Field
+          index="01"
+          label="Почта"
+          type="email"
+          name="email"
+          autoComplete="email"
+          inputMode="email"
+          placeholder="name@example.com"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Field
+          index="02"
+          label="Пароль"
+          type="password"
+          name="password"
+          autoComplete="current-password"
+          placeholder="••••••••••••"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <div className="-mt-6 flex justify-end">
+          <Link
+            href="/forgot-password"
+            className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft underline-offset-4 outline-none hover:text-ink hover:underline focus-visible:text-ink focus-visible:underline"
+          >
+            Забыли пароль?
+          </Link>
+        </div>
+
+        {error && <FormError>{error}</FormError>}
+
+        <SubmitButton isLoading={isLoading} label="Войти" loadingLabel="Выполняется вход" />
+      </form>
+
+      <AuthSwitch question="Ещё нет аккаунта?" href="/register" label="Зарегистрироваться" />
+    </div>
   );
 }

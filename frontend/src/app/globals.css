@@ -1,12 +1,142 @@
 @import 'tailwindcss';
 
+@theme inline {
+  --font-sans: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+@theme {
+  --color-paper: #f2eee6;
+  --color-ink: #121212;
+  --color-ink-soft: #5e5a52;
+  --color-signal: #e3411f;
+  --color-signal-deep: #b8300f;
+  --color-cobalt: #2448c6;
+  --color-ochre: #f1b51c;
+
+  --ease-swiss: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-signal);
+  color: var(--color-paper);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-paper) inset;
+  -webkit-text-fill-color: var(--color-ink);
+  caret-color: var(--color-ink);
+}
+
+/* ——— Auth: poster ——— */
+
+.poster-grid {
+  background-image:
+    linear-gradient(to right, rgb(242 238 230 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(242 238 230 / 0.07) 1px, transparent 1px);
+  background-size: calc(100% / 12) calc(100% / 8);
+}
+
+.shape {
+  position: absolute;
+  transform-origin: center;
+  transition-property: left, top, width, height, transform, opacity;
+  transition-duration: 1100ms;
+  transition-timing-function: var(--ease-swiss);
+}
+
+.poster-line {
+  animation: poster-rise 900ms cubic-bezier(0.2, 0.7, 0.1, 1) both;
+}
+
+.ring-spin {
+  animation: spin 60s linear infinite;
+}
+
+@keyframes poster-rise {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ——— Auth: form ——— */
+
+.auth-enter > * {
+  animation: auth-enter 700ms cubic-bezier(0.2, 0.7, 0.1, 1) both;
+}
+.auth-enter > *:nth-child(2) {
+  animation-delay: 90ms;
+}
+.auth-enter > *:nth-child(3) {
+  animation-delay: 180ms;
+}
+.auth-enter > *:nth-child(4) {
+  animation-delay: 270ms;
+}
+
+@keyframes auth-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.loader-tick {
+  animation: loader-tick 900ms ease-in-out infinite;
+}
+
+@keyframes loader-tick {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.success-disc {
+  animation: success-pop 700ms var(--ease-swiss) 200ms both;
+}
+
+@keyframes success-pop {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shape {
+    transition: none;
+  }
+  .poster-line,
+  .ring-spin,
+  .auth-enter > *,
+  .loader-tick,
+  .success-disc {
+    animation: none;
+  }
 }
