@@ -128,15 +128,38 @@ input:-webkit-autofill:focus {
   }
 }
 
+/* ——— Home: learning cycle ——— */
+
+.stage-fill {
+  transform-origin: left;
+  animation: stage-fill 4200ms linear both;
+}
+
+.stage-strip:hover .stage-fill,
+.stage-strip:focus-within .stage-fill {
+  animation-play-state: paused;
+}
+
+@keyframes stage-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .shape {
     transition: none;
   }
+  /* без анимации полоса заполнена, и цикл не переключается сам */
   .poster-line,
   .ring-spin,
   .auth-enter > *,
   .loader-tick,
-  .success-disc {
+  .success-disc,
+  .stage-fill {
     animation: none;
   }
 }

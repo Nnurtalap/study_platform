@@ -103,6 +103,30 @@ export function SubmitButton({
   );
 }
 
+export function PrimaryLink({
+  href,
+  label,
+  className = '',
+}: {
+  href: string;
+  label: string;
+  className?: string;
+}) {
+  return (
+    <Link href={href} className={`${PRIMARY_BUTTON} ${className}`}>
+      <ButtonContent label={label} />
+    </Link>
+  );
+}
+
+export function TextLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link href={href} className={TEXT_ACTION}>
+      {children}
+    </Link>
+  );
+}
+
 type AuthSwitchProps = { question: string; label: string } & (
   | { href: string; onClick?: never }
   | { onClick: () => void; href?: never }
@@ -113,9 +137,7 @@ export function AuthSwitch({ question, label, href, onClick }: AuthSwitchProps) 
     <p className="mt-12 flex flex-wrap items-baseline justify-between gap-2 border-t border-ink/15 pt-5 text-sm text-ink-soft">
       <span>{question}</span>
       {href ? (
-        <Link href={href} className={TEXT_ACTION}>
-          {label} →
-        </Link>
+        <TextLink href={href}>{label} →</TextLink>
       ) : (
         <button type="button" onClick={onClick} className={TEXT_ACTION}>
           {label} →
@@ -149,9 +171,7 @@ export function AuthSuccess({
       <AuthHeading index="✓" eyebrow={eyebrow} title={title}>
         {children}
       </AuthHeading>
-      <Link href={href} className={`${PRIMARY_BUTTON} mt-12`}>
-        <ButtonContent label={actionLabel} />
-      </Link>
+      <PrimaryLink href={href} label={actionLabel} className="mt-12" />
       {footer}
     </div>
   );
