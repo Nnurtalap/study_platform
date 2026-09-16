@@ -11,7 +11,7 @@ import Logo from '@/components/ui/Logo';
 import Spinner from '@/components/ui/Spinner';
 import { BUTTON_TEXT, MONO_LABEL, NAV_LINK } from '@/components/ui/styles';
 import { useIsHydrated } from '@/hooks/useIsHydrated';
-import { useIsSignedIn } from '@/hooks/useIsSignedIn';
+import { useAccessToken } from '@/hooks/useIsSignedIn';
 import { useQuery } from '@/hooks/useQuery';
 import { SessionContext } from './session';
 
@@ -27,8 +27,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const isHydrated = useIsHydrated();
-  const isSignedIn = useIsSignedIn();
-  const me = useQuery(isHydrated && isSignedIn ? 'me' : null, getMe);
+  const token = useAccessToken();
+  const isSignedIn = token !== null;
+  // Ключ зависит от токена: вход под другим аккаунтом в соседней вкладке перезагрузит профиль
+  const me = useQuery(isHydrated && isSignedIn ? `me:${token}` : null, getMe);
 
   const isUnauthorized =
     (isHydrated && !isSignedIn) || (me.error instanceof ApiError && me.error.status === 401);
@@ -93,7 +95,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 py-12 lg:py-16">{children}</main>
+        {/* Смена пользователя сбрасывает все загруженные данные страницы */}
+        <main key={user.id} className="flex-1 py-12 lg:py-16">
+          {children}
+        </main>
 
         <footer className={`flex justify-between border-t border-ink/15 pt-4 text-ink-soft ${MONO_LABEL}`}>
           <span>© 2026</span>

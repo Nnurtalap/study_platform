@@ -57,7 +57,7 @@ export default function Logout() {
         <SubmitButton isLoading={isLoading} label="Выйти" loadingLabel="Выходим" />
       </form>
 
-      <AuthSwitch question="Передумали?" href="/" label="На главную" />
+      <AuthSwitch question="Передумали?" href="/dashboard" label="В кабинет" />
     </div>
   );
 }

@@ -89,7 +89,7 @@ function AssignmentList({ items }: { items: StudentAssignmentDetail[] }) {
               className="group grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-2 py-5 outline-none sm:grid-cols-[1fr_10rem_auto]"
             >
               <div className="min-w-0">
-                <p className="truncate text-xl font-medium tracking-tight transition-colors group-hover:text-signal-deep group-focus-visible:text-signal-deep">
+                <p className="text-xl font-medium tracking-tight text-balance transition-colors sm:truncate group-hover:text-signal-deep group-focus-visible:text-signal-deep">
                   {item.title}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1">

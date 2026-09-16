@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import AssignmentView from '@/components/app/AssignmentView';
 
 export const metadata: Metadata = {
@@ -11,8 +10,8 @@ export default async function AssignmentPage({
 }: PageProps<'/dashboard/assignments/[id]'>) {
   const { id } = await params;
   const assignmentId = Number(id);
+  // Некорректный id показываем как «тест не найден» внутри кабинета, без запроса к API
+  const validId = Number.isInteger(assignmentId) && assignmentId > 0 ? assignmentId : null;
 
-  if (!Number.isInteger(assignmentId) || assignmentId <= 0) notFound();
-
-  return <AssignmentView key={assignmentId} id={assignmentId} />;
+  return <AssignmentView key={id} id={validId} />;
 }

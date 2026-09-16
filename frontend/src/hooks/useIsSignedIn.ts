@@ -11,10 +11,10 @@ function subscribe(onChange: () => void) {
 }
 
 // На сервере токена нет — до гидрации показываем гостевое состояние
+export function useAccessToken(): string | null {
+  return useSyncExternalStore(subscribe, getAccessToken, () => null);
+}
+
 export function useIsSignedIn(): boolean {
-  return useSyncExternalStore(
-    subscribe,
-    () => getAccessToken() !== null,
-    () => false,
-  );
+  return useAccessToken() !== null;
 }

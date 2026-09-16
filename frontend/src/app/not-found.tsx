@@ -1,0 +1,39 @@
+import type { Metadata } from 'next';
+import { PrimaryLink } from '@/components/auth/AuthUI';
+import Logo from '@/components/ui/Logo';
+
+export const metadata: Metadata = {
+  title: 'Страница не найдена',
+};
+
+export default function NotFound() {
+  return (
+    <div className="flex flex-1 flex-col bg-paper px-6 py-8 text-ink sm:px-12 lg:min-h-dvh lg:px-16 xl:px-24">
+      <header className="relative border-t-2 border-ink pt-3 pb-1">
+        <span aria-hidden className="absolute -top-0.5 left-0 h-0.5 w-6 bg-signal" />
+        <Logo />
+      </header>
+
+      <main className="auth-enter flex flex-1 flex-col justify-center py-16">
+        <p className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+          <span aria-hidden className="size-2 bg-signal" />
+          404 / Не найдено
+        </p>
+        <h1 className="mt-6 text-[clamp(3rem,7.4vw,7.5rem)] leading-[0.9] font-semibold tracking-[-0.05em]">
+          Такой страницы
+          <br />
+          нет<span className="text-signal">.</span>
+        </h1>
+        <p className="mt-8 max-w-md text-base leading-relaxed text-ink-soft sm:text-lg">
+          Возможно, адрес набран с ошибкой или страница была удалена.
+        </p>
+        <PrimaryLink href="/" label="На главную" className="mt-10 sm:w-72" />
+      </main>
+
+      <footer className="flex justify-between border-t border-ink/15 pt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+        <span>© 2026</span>
+        <span>Учебная платформа</span>
+      </footer>
+    </div>
+  );
+}

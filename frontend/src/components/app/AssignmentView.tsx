@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
   completeAssignment,
   getMyAssignment,
@@ -10,13 +10,15 @@ import {
   type StudentAssignmentDetail,
   type StudentTask,
 } from '@/api/assignments';
-import { FormError } from '@/components/auth/AuthUI';
+import { ApiError } from '@/api/config';
+import { FormError, TextLink } from '@/components/auth/AuthUI';
 import { translateError } from '@/components/auth/translateError';
 import Spinner from '@/components/ui/Spinner';
 import { BUTTON_PRIMARY, BUTTON_TEXT, MONO_LABEL } from '@/components/ui/styles';
 import { useQuery } from '@/hooks/useQuery';
 import {
   DIFFICULTY,
+  Empty,
   Eyebrow,
   formatDate,
   Notice,
@@ -28,8 +30,11 @@ import {
   Tag,
 } from './ui';
 
-export default function AssignmentView({ id }: { id: number }) {
-  const { data, error, isLoading, reload } = useQuery(`assignment-${id}`, () => getMyAssignment(id));
+export default function AssignmentView({ id }: { id: number | null }) {
+  const { data, error, isLoading, reload } = useQuery(id === null ? null : `assignment-${id}`, () =>
+    getMyAssignment(id!),
+  );
+  const isNotFound = id === null || (error instanceof ApiError && error.status === 404);
 
   return (
     <div className="auth-enter space-y-12">
@@ -43,7 +48,12 @@ export default function AssignmentView({ id }: { id: number }) {
         Все тесты
       </Link>
 
-      {error ? (
+      {isNotFound ? (
+        <Empty title="Тест не найден">
+          Возможно, его сняли с назначения или ссылка неверна.{' '}
+          <TextLink href="/dashboard">Ко всем тестам →</TextLink>
+        </Empty>
+      ) : error ? (
         <Notice mark="signal">
           <span>{translateError(error)}</span>
           <button type="button" onClick={reload} className={BUTTON_TEXT}>
@@ -176,6 +186,33 @@ function TaskItem({
 
 const MAX_ANSWER_LENGTH = 20000;
 
+// 400/409 значат, что состояние теста изменилось (срок истёк, ответ ушёл из другой вкладки)
+function isStaleStateError(err: unknown): boolean {
+  return err instanceof ApiError && (err.status === 400 || err.status === 409);
+}
+
+// Черновик хранится локально, чтобы ответ не пропал при уходе со страницы
+function draftKey(assignmentId: number, taskId: number) {
+  return `draft:${assignmentId}:${taskId}`;
+}
+
+function readDraft(key: string): string {
+  try {
+    return localStorage.getItem(key) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+function writeDraft(key: string, value: string) {
+  try {
+    if (value) localStorage.setItem(key, value);
+    else localStorage.removeItem(key);
+  } catch {
+    // хранилище недоступно (приватный режим) — черновик просто не сохранится
+  }
+}
+
 function AnswerForm({
   assignmentId,
   taskId,
@@ -186,7 +223,8 @@ function AnswerForm({
   onSubmitted: () => void;
 }) {
   const id = useId();
-  const [answer, setAnswer] = useState('');
+  const storageKey = draftKey(assignmentId, taskId);
+  const [answer, setAnswer] = useState(() => readDraft(storageKey));
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -197,10 +235,12 @@ function AnswerForm({
 
     try {
       await submitAnswer(assignmentId, taskId, answer.trim());
+      writeDraft(storageKey, '');
       onSubmitted();
     } catch (err) {
       setError(translateError(err));
       setIsLoading(false);
+      if (isStaleStateError(err)) onSubmitted();
     }
   }
 
@@ -218,7 +258,10 @@ function AnswerForm({
             maxLength={MAX_ANSWER_LENGTH}
             placeholder="Напишите решение…"
             value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
+            onChange={(e) => {
+              setAnswer(e.target.value);
+              writeDraft(storageKey, e.target.value);
+            }}
             className="peer block w-full resize-y rounded-none border-0 border-b-2 border-ink bg-transparent px-0 py-3 text-lg leading-relaxed outline-none placeholder:text-ink/25"
           />
           <span
@@ -246,10 +289,22 @@ function AnswerForm({
   );
 }
 
-function SubmissionView({ id, maxPoints }: { id: number; maxPoints: number }) {
-  const { data, error } = useQuery(`submission-${id}`, () => getSubmission(id));
+const POLL_INTERVAL_MS = 15_000;
 
-  if (error) return <FormError>{translateError(error)}</FormError>;
+function SubmissionView({ id, maxPoints }: { id: number; maxPoints: number }) {
+  const { data, error, reload } = useQuery(`submission-${id}`, () => getSubmission(id));
+  const isPending = data?.status === 'pending';
+
+  // Пока ответ на проверке, тихо опрашиваем сервер; в фоновой вкладке не тратим запросы
+  useEffect(() => {
+    if (!isPending) return;
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') reload();
+    }, POLL_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [isPending, reload]);
+
+  if (!data && error) return <FormError>{translateError(error)}</FormError>;
   if (!data) return <div aria-hidden className="skeleton h-14" />;
 
   return (
@@ -314,6 +369,7 @@ function CompleteBar({
     } catch (err) {
       setError(translateError(err));
       setIsLoading(false);
+      if (isStaleStateError(err)) onCompleted();
     }
   }
 

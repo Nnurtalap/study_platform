@@ -12,6 +12,15 @@ const MESSAGES: Record<string, string> = {
   RESET_PASSWORD_INVALID_PASSWORD: PASSWORD_LENGTH_MESSAGE,
   VERIFY_USER_BAD_TOKEN: 'Ссылка подтверждения недействительна или устарела',
   VERIFY_USER_ALREADY_VERIFIED: 'Почта уже подтверждена',
+
+  // Ошибки кабинета: бэкенд пока отдаёт их английским текстом
+  'Assignment not found': 'Тест не найден или не назначен вам',
+  'Assignment already completed': 'Тест уже завершён',
+  'Assignment deadline has passed': 'Срок сдачи теста истёк',
+  'Answer all tasks before completing the test': 'Ответьте на все задания, чтобы завершить тест',
+  'This task is not part of the assigned test': 'Это задание не входит в тест',
+  'You have already submitted an answer for this task': 'Ответ на это задание уже отправлен',
+  'Submission not found': 'Ответ не найден',
 };
 
 export function getErrorCode(error: unknown): unknown {
@@ -41,6 +50,10 @@ export function translateError(error: unknown): string {
 
   if (error.status === 401) {
     return 'Сессия истекла, войдите снова';
+  }
+
+  if (error.status === 404) {
+    return 'Не найдено';
   }
 
   if (error.status === 422) {

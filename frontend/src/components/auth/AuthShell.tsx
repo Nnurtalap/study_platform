@@ -24,9 +24,14 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const variant = VARIANTS[pathname] ?? 'login';
   const isPrimary = variant === 'login' || variant === 'register';
-  const back = variant === 'logout' ? { href: '/', label: 'На главную' } : { href: '/login', label: 'Ко входу' };
   const router = useRouter();
   const isSignedIn = useIsSignedIn();
+  const back =
+    variant === 'logout'
+      ? isSignedIn
+        ? { href: '/dashboard', label: 'В кабинет' }
+        : { href: '/', label: 'На главную' }
+      : { href: '/login', label: 'Ко входу' };
 
   // Уже вошедшему пользователю формы входа не нужны — сразу в кабинет
   useEffect(() => {
