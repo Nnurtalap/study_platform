@@ -1,56 +1,56 @@
-import Link from 'next/link';
+import Logo from '@/components/ui/Logo';
 import HeroActions from './home/HeroActions';
 import HomeNav from './home/HomeNav';
-import LearningCycle from './home/LearningCycle';
 
-const HEADLINE = ['Учёба,', 'собранная', 'в систему'];
+const STEPS = [
+  { title: 'Предметы и темы', text: 'Задания собраны в одну библиотеку по темам.' },
+  { title: 'Тесты', text: 'Преподаватель собирает тест и назначает его группе.' },
+  { title: 'Решения', text: 'Студенты отвечают — работы уходят на проверку.' },
+  { title: 'Разбор', text: 'Балл, комментарий и слабые темы — каждому.' },
+];
 
 export default function HomePage() {
   return (
-    <div className="flex flex-1 flex-col bg-paper px-6 py-8 text-ink sm:px-12 lg:min-h-dvh lg:px-16 xl:px-24">
-      <header className="relative flex items-center justify-between gap-4 border-t-2 border-ink pt-3 pb-1">
-        <span aria-hidden className="absolute -top-0.5 left-0 h-0.5 w-6 bg-signal" />
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 text-sm font-semibold tracking-tight outline-none focus-visible:text-signal-deep"
-        >
-          <span aria-hidden className="size-3 bg-signal" />
-          Study Platform
-        </Link>
+    <div className="flex min-h-dvh flex-1 flex-col px-4 sm:px-6">
+      <header className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between">
+        <Logo />
         <HomeNav />
       </header>
 
-      <main className="grid flex-1 gap-y-14 py-12 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-16 lg:py-14">
-        <section className="auth-enter flex flex-col justify-center lg:col-span-7 lg:row-start-1">
-          <p className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
-            <span aria-hidden className="size-2 bg-signal" />
-            00 / Учебная платформа
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center py-16 sm:py-24">
+        <section className="fade-in max-w-2xl">
+          <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-ink-soft">
+            <span aria-hidden className="size-1.5 rounded-full bg-accent" />
+            Учебная платформа
           </p>
 
-          <h1 className="mt-6 text-[clamp(3rem,7.4vw,7.5rem)] leading-[0.9] font-semibold tracking-[-0.05em]">
-            {HEADLINE.map((line, i) => (
-              <span key={line} className="block">
-                {line}
-                {i === HEADLINE.length - 1 && <span className="text-signal">.</span>}
-              </span>
-            ))}
+          <h1 className="mt-6 text-4xl leading-[1.05] font-semibold tracking-tight text-balance text-ink sm:text-6xl">
+            Учёба, собранная в&nbsp;систему
           </h1>
 
-          <p className="mt-8 max-w-md text-base leading-relaxed text-ink-soft sm:text-lg">
+          <p className="mt-5 max-w-lg text-base leading-relaxed text-ink-soft sm:text-lg">
             Преподаватель собирает тесты из заданий, группа решает, а разбор показывает каждому его
             слабые темы.
           </p>
 
-          <div className="mt-10">
+          <div className="mt-8">
             <HeroActions />
           </div>
         </section>
 
-        <LearningCycle />
+        <ol className="fade-in mt-20 grid gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+          {STEPS.map((step, i) => (
+            <li key={step.title} className="bg-surface p-5">
+              <span className="font-mono text-xs text-ink-soft">0{i + 1}</span>
+              <p className="mt-3 text-sm font-medium text-ink">{step.title}</p>
+              <p className="mt-1 text-sm leading-relaxed text-ink-soft">{step.text}</p>
+            </li>
+          ))}
+        </ol>
       </main>
 
-      <footer className="flex justify-between border-t border-ink/15 pt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
-        <span>© 2026</span>
+      <footer className="mx-auto flex w-full max-w-5xl justify-between border-t border-line py-5 text-xs text-ink-soft">
+        <span>© 2026 Study Platform</span>
         <span>Задания · Тесты · Разбор</span>
       </footer>
     </div>

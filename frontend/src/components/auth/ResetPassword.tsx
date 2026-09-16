@@ -60,24 +60,23 @@ export default function ResetPassword({ initialToken }: { initialToken?: string 
 
   if (isDone) {
     return (
-      <AuthSuccess eyebrow="Пароль изменён" title="Пароль обновлён." href="/login" actionLabel="Войти">
+      <AuthSuccess title="Пароль обновлён" href="/login" actionLabel="Войти">
         Все прежние сессии завершены. Войдите с новым паролем.
       </AuthSuccess>
     );
   }
 
   return (
-    <div className="auth-enter">
-      <AuthHeading index="04" eyebrow="Новый пароль" title="Задайте новый пароль">
+    <div className="fade-in">
+      <AuthHeading title="Задайте новый пароль">
         После сохранения все активные сессии будут завершены на всех устройствах.
       </AuthHeading>
 
-      <form onSubmit={handleSubmit} className="mt-12 space-y-9">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         {hasLinkToken ? (
           <LinkTokenNotice>Код сброса получен из ссылки</LinkTokenNotice>
         ) : (
           <Field
-            index="01"
             label="Код из письма"
             name="token"
             autoComplete="one-time-code"
@@ -91,7 +90,6 @@ export default function ResetPassword({ initialToken }: { initialToken?: string 
         )}
 
         <NewPasswordFields
-          indexes={hasLinkToken ? ['01', '02'] : ['02', '03']}
           label="Новый пароль"
           password={password}
           confirm={confirm}
@@ -103,7 +101,9 @@ export default function ResetPassword({ initialToken }: { initialToken?: string 
 
         {error && <FormError>{error}</FormError>}
 
-        <SubmitButton isLoading={isLoading} label="Сохранить пароль" loadingLabel="Сохраняем" />
+        <div className="pt-2">
+          <SubmitButton isLoading={isLoading} label="Сохранить пароль" loadingLabel="Сохраняем…" />
+        </div>
       </form>
 
       <AuthSwitch question="Ссылка устарела?" href="/forgot-password" label="Запросить новую" />

@@ -38,26 +38,28 @@ export default function Logout() {
 
   if (isDone) {
     return (
-      <AuthSuccess eyebrow="Сессия завершена" title="До встречи." href="/login" actionLabel="Войти снова">
+      <AuthSuccess title="До встречи" href="/login" actionLabel="Войти снова">
         Вы вышли из аккаунта на этом устройстве.
       </AuthSuccess>
     );
   }
 
   return (
-    <div className="auth-enter">
-      <AuthHeading index="06" eyebrow="Выход" title="Выйти из аккаунта?">
+    <div className="fade-in">
+      <AuthHeading title="Выйти из аккаунта?">
         Сессия на этом устройстве будет завершена. Чтобы вернуться, понадобится снова ввести почту и
         пароль.
       </AuthHeading>
 
-      <form onSubmit={handleSubmit} className="mt-12 space-y-9">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         {error && <FormError>{error}</FormError>}
 
-        <SubmitButton isLoading={isLoading} label="Выйти" loadingLabel="Выходим" />
+        <div className="pt-2">
+          <SubmitButton isLoading={isLoading} label="Выйти" loadingLabel="Выходим…" />
+        </div>
       </form>
 
-      <AuthSwitch question="Передумали?" href="/" label="На главную" />
+      <AuthSwitch question="Передумали?" href="/dashboard" label="Вернуться в кабинет" />
     </div>
   );
 }

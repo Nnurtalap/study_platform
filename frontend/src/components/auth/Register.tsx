@@ -2,22 +2,22 @@
 
 import { login, register } from '@/api/auth/auth';
 import { setAccessToken } from '@/api/auth/token';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { AuthHeading, AuthSuccess, AuthSwitch, FormError, SubmitButton } from './AuthUI';
 import { Field } from './Field';
 import { NewPasswordFields } from './NewPasswordFields';
 import { translateError } from './translateError';
 
-type Result = 'signed-in' | 'registered';
-
 export default function Register() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [isConfirmTouched, setIsConfirmTouched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<Result | null>(null);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   const isMismatch = isConfirmTouched && confirm !== password;
 
@@ -45,40 +45,29 @@ export default function Register() {
     try {
       const { access_token } = await login(email, password);
       setAccessToken(access_token);
-      setResult('signed-in');
+      router.replace('/dashboard');
     } catch {
-      setResult('registered');
-    } finally {
+      setIsRegistered(true);
       setIsLoading(false);
     }
   }
 
-  if (result === 'signed-in') {
+  if (isRegistered) {
     return (
-      <AuthSuccess eyebrow="Готово" title="Аккаунт создан." href="/" actionLabel="На главную">
-        Вы вошли как <span className="font-medium text-ink">{email}</span>. Можно приступать к
-        заданиям.
-      </AuthSuccess>
-    );
-  }
-
-  if (result === 'registered') {
-    return (
-      <AuthSuccess eyebrow="Готово" title="Аккаунт создан." href="/login" actionLabel="Перейти ко входу">
+      <AuthSuccess title="Аккаунт создан" href="/login" actionLabel="Перейти ко входу">
         Теперь войдите с почтой <span className="font-medium text-ink">{email}</span>.
       </AuthSuccess>
     );
   }
 
   return (
-    <div className="auth-enter">
-      <AuthHeading index="02" eyebrow="Регистрация" title="Новый аккаунт">
+    <div className="fade-in">
+      <AuthHeading title="Создать аккаунт">
         Нужны только почта и пароль. Новый аккаунт получает роль студента.
       </AuthHeading>
 
-      <form onSubmit={handleSubmit} className="mt-12 space-y-9">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <Field
-          index="01"
           label="Почта"
           type="email"
           name="email"
@@ -90,7 +79,6 @@ export default function Register() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <NewPasswordFields
-          indexes={['02', '03']}
           password={password}
           confirm={confirm}
           isMismatch={isMismatch}
@@ -101,7 +89,9 @@ export default function Register() {
 
         {error && <FormError>{error}</FormError>}
 
-        <SubmitButton isLoading={isLoading} label="Создать аккаунт" loadingLabel="Создаём аккаунт" />
+        <div className="pt-2">
+          <SubmitButton isLoading={isLoading} label="Создать аккаунт" loadingLabel="Создаём аккаунт…" />
+        </div>
       </form>
 
       <AuthSwitch question="Уже есть аккаунт?" href="/login" label="Войти" />

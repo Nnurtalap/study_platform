@@ -1,26 +1,29 @@
 'use client';
 
 import Link from 'next/link';
-import { useIsSignedIn } from './useIsSignedIn';
-
-const NAV_LINK =
-  'font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft underline-offset-4 outline-none hover:text-ink hover:underline focus-visible:text-ink focus-visible:underline';
+import { BUTTON_GHOST, BUTTON_PRIMARY } from '@/components/ui/styles';
+import { useIsSignedIn } from '@/hooks/useIsSignedIn';
 
 export default function HomeNav() {
   const isSignedIn = useIsSignedIn();
 
   return (
-    <nav aria-label="Аккаунт" className="flex items-baseline gap-6">
+    <nav aria-label="Аккаунт" className="flex items-center gap-1">
       {isSignedIn ? (
-        <Link href="/logout" className={NAV_LINK}>
-          Выйти
-        </Link>
+        <>
+          <Link href="/logout" className={BUTTON_GHOST}>
+            Выйти
+          </Link>
+          <Link href="/dashboard" className={`${BUTTON_PRIMARY} h-9`}>
+            Кабинет
+          </Link>
+        </>
       ) : (
         <>
-          <Link href="/login" className={NAV_LINK}>
+          <Link href="/login" className={BUTTON_GHOST}>
             Вход
           </Link>
-          <Link href="/register" className={NAV_LINK}>
+          <Link href="/register" className={`${BUTTON_PRIMARY} h-9`}>
             Регистрация
           </Link>
         </>
