@@ -9,7 +9,7 @@ import { getMe } from '@/api/users';
 import { translateError } from '@/components/auth/translateError';
 import Logo from '@/components/ui/Logo';
 import Spinner from '@/components/ui/Spinner';
-import { BUTTON_GHOST, BUTTON_SECONDARY } from '@/components/ui/styles';
+import { BUTTON_TEXT, MONO_LABEL, NAV_LINK } from '@/components/ui/styles';
 import { useIsHydrated } from '@/hooks/useIsHydrated';
 import { useIsSignedIn } from '@/hooks/useIsSignedIn';
 import { useQuery } from '@/hooks/useQuery';
@@ -41,8 +41,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return (
       <CenteredState>
         <p className="text-sm text-ink-soft">{translateError(me.error)}</p>
-        <button type="button" onClick={me.reload} className={`${BUTTON_SECONDARY} mt-4`}>
-          Повторить
+        <button type="button" onClick={me.reload} className={`${BUTTON_TEXT} mt-4 text-sm`}>
+          Повторить →
         </button>
       </CenteredState>
     );
@@ -51,7 +51,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   if (!me.data || isUnauthorized) {
     return (
       <CenteredState>
-        <Spinner className="size-5 text-ink-soft" />
+        <Spinner className="bg-ink" />
         <span className="sr-only">Загрузка</span>
       </CenteredState>
     );
@@ -61,12 +61,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SessionContext value={user}>
-      <div className="flex min-h-dvh flex-1 flex-col">
-        <header className="sticky top-0 z-20 border-b border-line bg-paper/80 backdrop-blur-md">
-          <div className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-4 sm:px-6">
+      <div className="flex flex-1 flex-col bg-paper px-6 py-8 text-ink sm:px-12 lg:min-h-dvh lg:px-16 xl:px-24">
+        <header className="relative flex flex-wrap items-center justify-between gap-x-8 gap-y-3 border-t-2 border-ink pt-3 pb-1">
+          <span aria-hidden className="absolute -top-0.5 left-0 h-0.5 w-6 bg-signal" />
+          <div className="flex items-center gap-8">
             <Logo href="/dashboard" />
-
-            <nav aria-label="Разделы" className="hidden items-center gap-1 sm:flex">
+            <nav aria-label="Разделы" className="flex items-baseline gap-6">
               {NAV.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
                 return (
@@ -74,51 +74,39 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={item.href}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`rounded-md px-2.5 py-1.5 text-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent ${
-                      isActive ? 'bg-line/60 font-medium text-ink' : 'text-ink-soft hover:text-ink'
-                    }`}
+                    className={`${NAV_LINK} ${isActive ? 'text-ink' : ''}`}
                   >
                     {item.label}
                   </Link>
                 );
               })}
             </nav>
+          </div>
 
-            <div className="ml-auto flex min-w-0 items-center gap-3">
-              <div className="hidden min-w-0 text-right leading-tight sm:block">
-                <p className="truncate text-sm font-medium text-ink">{user.email}</p>
-                <p className="text-xs text-ink-soft">
-                  {user.is_superuser ? 'Суперпользователь' : ROLE_LABELS[user.role]}
-                </p>
-              </div>
-              <Avatar email={user.email} />
-              <Link href="/logout" className={BUTTON_GHOST}>
-                Выйти
-              </Link>
-            </div>
+          <div className="flex min-w-0 items-baseline gap-6">
+            <span className={`hidden min-w-0 truncate text-ink-soft sm:block ${MONO_LABEL}`}>
+              {user.email} · {user.is_superuser ? 'Суперпользователь' : ROLE_LABELS[user.role]}
+            </span>
+            <Link href="/logout" className={NAV_LINK}>
+              Выйти
+            </Link>
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-12">{children}</main>
+        <main className="flex-1 py-12 lg:py-16">{children}</main>
+
+        <footer className={`flex justify-between border-t border-ink/15 pt-4 text-ink-soft ${MONO_LABEL}`}>
+          <span>© 2026</span>
+          <span>Кабинет</span>
+        </footer>
       </div>
     </SessionContext>
   );
 }
 
-function Avatar({ email }: { email: string }) {
-  return (
-    <span
-      aria-hidden
-      className="grid size-8 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-semibold uppercase text-accent"
-    >
-      {email.charAt(0)}
-    </span>
-  );
-}
-
 function CenteredState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-dvh flex-1 flex-col items-center justify-center px-4 text-center">
+    <div className="flex min-h-dvh flex-1 flex-col items-center justify-center bg-paper px-6 text-center text-ink">
       {children}
     </div>
   );

@@ -4,15 +4,7 @@ import { TextLink } from '@/components/auth/AuthUI';
 import { useUser } from './session';
 import StudentOverview from './StudentOverview';
 import TeacherOverview from './TeacherOverview';
-import { EmptyState, Notice, PageHeader } from './ui';
-
-function greeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 6) return 'Доброй ночи';
-  if (hour < 12) return 'Доброе утро';
-  if (hour < 18) return 'Добрый день';
-  return 'Добрый вечер';
-}
+import { Empty, Eyebrow, Notice, PageTitle } from './ui';
 
 export default function Dashboard() {
   const user = useUser();
@@ -21,29 +13,33 @@ export default function Dashboard() {
   const isStudent = user.role === 'student' && !isTeacher;
 
   return (
-    <div className="fade-in space-y-8">
-      <PageHeader
-        title={`${greeting()}, ${name}`}
-        description={
-          isTeacher
+    <div className="auth-enter space-y-14">
+      <header>
+        <Eyebrow>00 / Кабинет</Eyebrow>
+        <PageTitle>
+          Привет, {name}
+          <span className="text-signal">.</span>
+        </PageTitle>
+        <p className="mt-5 max-w-md text-base leading-relaxed text-ink-soft">
+          {isTeacher
             ? 'Библиотека предметов и заданий для ваших тестов.'
-            : 'Здесь собраны тесты, которые вам назначили.'
-        }
-      />
+            : 'Здесь собраны тесты, которые вам назначили.'}
+        </p>
+      </header>
 
       {!user.is_verified && (
         <Notice>
-          <span>Почта ещё не подтверждена — подтвердите её, чтобы не потерять доступ.</span>
-          <TextLink href="/verify">Подтвердить</TextLink>
+          <span>Почта ещё не подтверждена.</span>
+          <TextLink href="/verify">Подтвердить →</TextLink>
         </Notice>
       )}
 
       {isTeacher && <TeacherOverview />}
       {isStudent && <StudentOverview />}
       {!isTeacher && !isStudent && (
-        <EmptyState title="Раздел администратора в разработке">
+        <Empty title="Раздел администратора в разработке">
           Для этой роли пока нет доступных разделов.
-        </EmptyState>
+        </Empty>
       )}
     </div>
   );

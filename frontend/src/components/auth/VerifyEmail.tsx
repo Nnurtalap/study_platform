@@ -76,7 +76,8 @@ export default function VerifyEmail({ initialToken }: { initialToken?: string })
   if (result === 'requested') {
     return (
       <AuthSuccess
-        title="Проверьте почту"
+        eyebrow="Запрос принят"
+        title="Проверьте почту."
         href="/login"
         actionLabel="Ко входу"
         footer={
@@ -98,7 +99,8 @@ export default function VerifyEmail({ initialToken }: { initialToken?: string })
 
     return (
       <AuthSuccess
-        title={isFresh ? 'Почта подтверждена' : 'Почта уже подтверждена'}
+        eyebrow="Готово"
+        title={isFresh ? 'Почта подтверждена.' : 'Почта уже подтверждена.'}
         href="/login"
         actionLabel="Войти"
       >
@@ -111,13 +113,14 @@ export default function VerifyEmail({ initialToken }: { initialToken?: string })
 
   if (mode === 'request') {
     return (
-      <div key="request" className="fade-in">
-        <AuthHeading title="Подтвердите почту">
+      <div key="request" className="auth-enter">
+        <AuthHeading index="05" eyebrow="Подтверждение" title="Подтвердите почту">
           Укажите адрес, использованный при регистрации, — пришлём ссылку для подтверждения.
         </AuthHeading>
 
-        <form onSubmit={handleRequest} className="mt-6 space-y-4">
+        <form onSubmit={handleRequest} className="mt-12 space-y-9">
           <Field
+            index="01"
             label="Почта"
             type="email"
             name="email"
@@ -131,9 +134,7 @@ export default function VerifyEmail({ initialToken }: { initialToken?: string })
 
           {error && <FormError>{error}</FormError>}
 
-          <div className="pt-2">
-            <SubmitButton isLoading={isLoading} label="Отправить ссылку" loadingLabel="Отправляем…" />
-          </div>
+          <SubmitButton isLoading={isLoading} label="Отправить ссылку" loadingLabel="Отправляем" />
         </form>
 
         <AuthSwitch
@@ -146,18 +147,19 @@ export default function VerifyEmail({ initialToken }: { initialToken?: string })
   }
 
   return (
-    <div key="confirm" className="fade-in">
-      <AuthHeading title="Подтвердите почту">
+    <div key="confirm" className="auth-enter">
+      <AuthHeading index="05" eyebrow="Подтверждение" title="Подтвердите почту">
         {hasLinkToken
           ? 'Осталось нажать кнопку — и адрес будет подтверждён.'
           : 'Вставьте код из письма, чтобы подтвердить адрес.'}
       </AuthHeading>
 
-      <form onSubmit={handleConfirm} className="mt-6 space-y-4">
+      <form onSubmit={handleConfirm} className="mt-12 space-y-9">
         {hasLinkToken ? (
           <LinkTokenNotice>Код подтверждения получен из ссылки</LinkTokenNotice>
         ) : (
           <Field
+            index="01"
             label="Код из письма"
             name="token"
             autoComplete="one-time-code"
@@ -172,9 +174,7 @@ export default function VerifyEmail({ initialToken }: { initialToken?: string })
 
         {error && <FormError>{error}</FormError>}
 
-        <div className="pt-2">
-          <SubmitButton isLoading={isLoading} label="Подтвердить почту" loadingLabel="Проверяем…" />
-        </div>
+        <SubmitButton isLoading={isLoading} label="Подтвердить почту" loadingLabel="Проверяем" />
       </form>
 
       <AuthSwitch

@@ -7,14 +7,22 @@ export default function HeroActions() {
   const isSignedIn = useIsSignedIn();
 
   if (isSignedIn) {
-    return <PrimaryLink href="/dashboard" label="Открыть кабинет →" className="px-5" />;
+    return (
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-10">
+        <PrimaryLink href="/dashboard" label="Открыть кабинет" className="sm:w-72" />
+        <p className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+          <span aria-hidden className="size-2 rounded-full bg-cobalt" />
+          Вы в системе
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-      <PrimaryLink href="/register" label="Начать бесплатно" className="px-5" />
+    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-10">
+      <PrimaryLink href="/register" label="Начать" className="sm:w-72" />
       <p className="text-sm text-ink-soft">
-        Уже есть аккаунт? <TextLink href="/login">Войти</TextLink>
+        Уже есть аккаунт? <TextLink href="/login">Войти →</TextLink>
       </p>
     </div>
   );

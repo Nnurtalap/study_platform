@@ -30,7 +30,8 @@ export default function ForgotPassword() {
   if (isDone) {
     return (
       <AuthSuccess
-        title="Проверьте почту"
+        eyebrow="Запрос принят"
+        title="Проверьте почту."
         href="/login"
         actionLabel="Вернуться ко входу"
         footer={<AuthSwitch question="Уже есть код из письма?" href="/reset-password" label="Ввести код" />}
@@ -42,13 +43,14 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="fade-in">
-      <AuthHeading title="Забыли пароль?">
+    <div className="auth-enter">
+      <AuthHeading index="03" eyebrow="Восстановление" title="Забыли пароль?">
         Укажите почту аккаунта — пришлём ссылку, по которой можно задать новый пароль.
       </AuthHeading>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-12 space-y-9">
         <Field
+          index="01"
           label="Почта"
           type="email"
           name="email"
@@ -62,9 +64,7 @@ export default function ForgotPassword() {
 
         {error && <FormError>{error}</FormError>}
 
-        <div className="pt-2">
-          <SubmitButton isLoading={isLoading} label="Отправить ссылку" loadingLabel="Отправляем…" />
-        </div>
+        <SubmitButton isLoading={isLoading} label="Отправить ссылку" loadingLabel="Отправляем" />
       </form>
 
       <AuthSwitch question="Вспомнили пароль?" href="/login" label="Войти" />

@@ -3,17 +3,18 @@
 import Link from 'next/link';
 import { getMyAssignment, listMyAssignments, type StudentAssignmentDetail } from '@/api/assignments';
 import { translateError } from '@/components/auth/translateError';
-import { BUTTON_SECONDARY, CARD } from '@/components/ui/styles';
+import { BUTTON_TEXT, MONO_LABEL } from '@/components/ui/styles';
 import { useQuery } from '@/hooks/useQuery';
 import {
-  EmptyState,
+  Empty,
   formatDate,
   Notice,
   plural,
-  SectionTitle,
-  SkeletonList,
-  Stat,
-  StatusBadge,
+  ProgressBar,
+  Section,
+  SkeletonRows,
+  Stats,
+  StatusTag,
 } from './ui';
 
 // В списке нет названия теста и числа задач — дозапрашиваем карточки параллельно
@@ -27,50 +28,48 @@ export default function StudentOverview() {
 
   if (error) {
     return (
-      <Notice tone="danger">
+      <Notice mark="signal">
         <span>{translateError(error)}</span>
-        <button type="button" onClick={reload} className={BUTTON_SECONDARY}>
-          Повторить
+        <button type="button" onClick={reload} className={BUTTON_TEXT}>
+          Повторить →
         </button>
       </Notice>
     );
   }
 
   const assignments = data ?? [];
-  const count = (status: StudentAssignmentDetail['status']) =>
-    assignments.filter((item) => item.status === status).length;
+  const count = (...statuses: StudentAssignmentDetail['status'][]) =>
+    data ? assignments.filter((item) => statuses.includes(item.status)).length : '—';
   const active = assignments.filter((item) => item.status !== 'completed');
   const done = assignments.filter((item) => item.status === 'completed');
 
   return (
-    <div className="space-y-10">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Всего тестов" value={data ? assignments.length : '—'} />
-        <Stat label="В работе" value={data ? count('in_progress') + count('assigned') : '—'} />
-        <Stat label="Завершено" value={data ? count('completed') : '—'} />
-        <Stat label="Просрочено" value={data ? count('overdue') : '—'} />
-      </div>
+    <div className="space-y-14">
+      <Stats
+        items={[
+          { label: 'Всего', value: data ? assignments.length : '—' },
+          { label: 'В работе', value: count('assigned', 'in_progress') },
+          { label: 'Завершено', value: count('completed') },
+          { label: 'Просрочено', value: count('overdue') },
+        ]}
+      />
 
-      <section>
-        <SectionTitle aside={data && active.length > 0 ? `${active.length}` : undefined}>
-          Актуальные
-        </SectionTitle>
+      <Section index="01" title="Актуальные" aside={data ? String(active.length).padStart(2, '0') : undefined}>
         {isLoading && !data ? (
-          <SkeletonList />
+          <SkeletonRows />
         ) : active.length === 0 ? (
-          <EmptyState title="Новых тестов нет">
+          <Empty title="Новых тестов нет">
             Когда преподаватель назначит тест вам или вашей группе, он появится здесь.
-          </EmptyState>
+          </Empty>
         ) : (
           <AssignmentList items={active} />
         )}
-      </section>
+      </Section>
 
       {done.length > 0 && (
-        <section>
-          <SectionTitle aside={`${done.length}`}>Завершённые</SectionTitle>
+        <Section index="02" title="Завершённые" aside={String(done.length).padStart(2, '0')}>
           <AssignmentList items={done} />
-        </section>
+        </Section>
       )}
     </div>
   );
@@ -78,49 +77,47 @@ export default function StudentOverview() {
 
 function AssignmentList({ items }: { items: StudentAssignmentDetail[] }) {
   return (
-    <ul className={`${CARD} divide-y divide-line overflow-hidden`}>
+    <ul>
       {items.map((item) => {
         const answered = item.tasks.filter((task) => task.submission_id !== null).length;
         const total = item.tasks.length;
 
         return (
-          <li key={item.id}>
+          <li key={item.id} className="border-b border-ink/15">
             <Link
               href={`/dashboard/assignments/${item.id}`}
-              className="group flex items-center gap-4 px-4 py-4 outline-none transition-colors hover:bg-line/30 focus-visible:bg-line/30 sm:px-5"
+              className="group grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-2 py-5 outline-none sm:grid-cols-[1fr_10rem_auto]"
             >
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate font-medium text-ink">{item.title}</p>
-                  <StatusBadge status={item.status} />
-                </div>
-                <p className="mt-1 text-xs text-ink-soft">
-                  {total} {plural(total, 'задание', 'задания', 'заданий')}
-                  {item.due_date && ` · до ${formatDate(item.due_date)}`}
+              <div className="min-w-0">
+                <p className="truncate text-xl font-medium tracking-tight transition-colors group-hover:text-signal-deep group-focus-visible:text-signal-deep">
+                  {item.title}
                 </p>
-              </div>
-
-              <div className="hidden w-32 shrink-0 sm:block">
-                <div className="flex justify-between text-xs text-ink-soft">
-                  <span>Прогресс</span>
-                  <span className="tabular-nums">
-                    {answered}/{total}
+                <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1">
+                  <StatusTag status={item.status} />
+                  <span className={`text-ink-soft ${MONO_LABEL}`}>
+                    {total} {plural(total, 'задание', 'задания', 'заданий')}
+                    {item.due_date && ` · до ${formatDate(item.due_date)}`}
                   </span>
                 </div>
-                <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-line">
-                  <div
-                    className="h-full rounded-full bg-ink"
-                    style={{ width: total ? `${(answered / total) * 100}%` : 0 }}
-                  />
-                </div>
               </div>
 
-              <span
+              <div className="hidden items-center gap-3 sm:flex">
+                <ProgressBar value={answered} total={total} />
+                <span className={`tabular-nums text-ink-soft ${MONO_LABEL}`}>
+                  {answered}/{total}
+                </span>
+              </div>
+
+              <svg
                 aria-hidden
-                className="text-ink-soft transition-transform group-hover:translate-x-0.5 group-hover:text-ink"
+                width="28"
+                height="12"
+                viewBox="0 0 28 12"
+                fill="none"
+                className="transition-transform duration-500 ease-swiss group-hover:translate-x-1.5"
               >
-                →
-              </span>
+                <path d="M0 6h26M21 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
             </Link>
           </li>
         );

@@ -13,34 +13,45 @@ import {
 import { FormError } from '@/components/auth/AuthUI';
 import { translateError } from '@/components/auth/translateError';
 import Spinner from '@/components/ui/Spinner';
-import { BUTTON_PRIMARY, BUTTON_SECONDARY, CARD, INPUT } from '@/components/ui/styles';
+import { BUTTON_PRIMARY, BUTTON_TEXT, MONO_LABEL } from '@/components/ui/styles';
 import { useQuery } from '@/hooks/useQuery';
-import { Badge, DIFFICULTY, formatDate, Notice, plural, SkeletonList, StatusBadge } from './ui';
+import {
+  DIFFICULTY,
+  Eyebrow,
+  formatDate,
+  Notice,
+  PageTitle,
+  plural,
+  ProgressBar,
+  SkeletonRows,
+  StatusTag,
+  Tag,
+} from './ui';
 
 export default function AssignmentView({ id }: { id: number }) {
   const { data, error, isLoading, reload } = useQuery(`assignment-${id}`, () => getMyAssignment(id));
 
   return (
-    <div className="fade-in space-y-8">
+    <div className="auth-enter space-y-12">
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-1.5 rounded-sm text-sm text-ink-soft outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+        className="group inline-flex items-baseline gap-2 text-sm font-medium outline-none hover:text-signal-deep focus-visible:text-signal-deep"
       >
-        <span aria-hidden>←</span> Все тесты
+        <span aria-hidden className="transition-transform duration-500 ease-swiss group-hover:-translate-x-1">
+          ←
+        </span>
+        Все тесты
       </Link>
 
       {error ? (
-        <Notice tone="danger">
+        <Notice mark="signal">
           <span>{translateError(error)}</span>
-          <button type="button" onClick={reload} className={BUTTON_SECONDARY}>
-            Повторить
+          <button type="button" onClick={reload} className={BUTTON_TEXT}>
+            Повторить →
           </button>
         </Notice>
       ) : isLoading && !data ? (
-        <>
-          <div className="skeleton h-9 w-2/3 rounded-lg" />
-          <SkeletonList rows={3} />
-        </>
+        <SkeletonRows rows={3} />
       ) : data ? (
         <Assignment assignment={data} onChange={reload} />
       ) : null}
@@ -62,43 +73,35 @@ function Assignment({
 
   return (
     <>
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge status={assignment.status} />
-          {assignment.due_date && (
-            <span className="text-xs text-ink-soft">Срок — {formatDate(assignment.due_date)}</span>
-          )}
-        </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
-          {assignment.title}
-        </h1>
+      <header>
+        <Eyebrow>
+          Тест{assignment.due_date && ` / до ${formatDate(assignment.due_date)}`}
+        </Eyebrow>
+        <PageTitle>{assignment.title}</PageTitle>
         {assignment.description && (
-          <p className="max-w-2xl text-sm leading-relaxed whitespace-pre-line text-ink-soft">
+          <p className="mt-5 max-w-xl text-base leading-relaxed whitespace-pre-line text-ink-soft">
             {assignment.description}
           </p>
         )}
 
-        <div className="flex max-w-md items-center gap-3 pt-2">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
-            <div
-              className="h-full rounded-full bg-ink transition-[width] duration-500"
-              style={{ width: tasks.length ? `${(answered / tasks.length) * 100}%` : 0 }}
-            />
+        <div className="mt-8 flex max-w-xl flex-wrap items-center gap-x-6 gap-y-3">
+          <StatusTag status={assignment.status} />
+          <div className="flex min-w-48 flex-1 items-center gap-3">
+            <ProgressBar value={answered} total={tasks.length} />
+            <span className={`tabular-nums text-ink-soft ${MONO_LABEL}`}>
+              {answered}/{tasks.length} · {totalPoints} {plural(totalPoints, 'балл', 'балла', 'баллов')}
+            </span>
           </div>
-          <span className="text-xs tabular-nums text-ink-soft">
-            {answered} из {tasks.length} · {totalPoints}{' '}
-            {plural(totalPoints, 'балл', 'балла', 'баллов')}
-          </span>
         </div>
       </header>
 
       {assignment.status === 'overdue' && (
-        <Notice tone="danger">Срок сдачи истёк — отправить ответы уже нельзя.</Notice>
+        <Notice mark="signal">Срок сдачи истёк — отправить ответы уже нельзя.</Notice>
       )}
 
-      <ol className="space-y-3">
+      <ol className="max-w-3xl">
         {tasks.map((task, i) => (
-          <TaskCard
+          <TaskItem
             key={task.id}
             number={i + 1}
             task={task}
@@ -110,7 +113,7 @@ function Assignment({
       </ol>
 
       {assignment.status === 'completed' ? (
-        <Notice tone="success">Тест завершён — оценки появятся у каждого ответа после проверки.</Notice>
+        <Notice mark="ink">Тест завершён — оценки появятся у каждого ответа после проверки.</Notice>
       ) : (
         assignment.can_submit && (
           <CompleteBar
@@ -125,7 +128,7 @@ function Assignment({
   );
 }
 
-function TaskCard({
+function TaskItem({
   number,
   task,
   assignmentId,
@@ -141,36 +144,31 @@ function TaskCard({
   const isAnswered = task.submission_id !== null;
 
   return (
-    <li className={`${CARD} p-5 sm:p-6`}>
-      <div className="flex items-start gap-4">
-        <span
-          className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold tabular-nums ${
-            isAnswered ? 'bg-ink text-paper' : 'bg-line/70 text-ink-soft'
-          }`}
-        >
-          {isAnswered ? '✓' : number}
+    <li className="relative border-t-2 border-ink pt-4 pb-12">
+      {isAnswered && <span aria-hidden className="absolute -top-0.5 left-0 h-0.5 w-full bg-signal" />}
+
+      <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <h2 className="flex items-baseline gap-3">
+          <span className={`${isAnswered ? 'text-signal-deep' : 'text-ink-soft'} ${MONO_LABEL}`}>
+            {String(number).padStart(2, '0')}
+          </span>
+          <span className="text-xl font-medium tracking-tight">{task.title}</span>
+        </h2>
+        <span className={`text-ink-soft ${MONO_LABEL}`}>
+          {DIFFICULTY[task.difficulty]} · {task.points} {plural(task.points, 'балл', 'балла', 'баллов')}
         </span>
+      </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h2 className="font-medium text-ink">{task.title}</h2>
-            <span className="text-xs text-ink-soft">
-              {DIFFICULTY[task.difficulty]} · {task.points}{' '}
-              {plural(task.points, 'балл', 'балла', 'баллов')}
-            </span>
-          </div>
-          <p className="mt-2 text-[15px] leading-relaxed whitespace-pre-line text-ink">{task.body}</p>
+      <p className="mt-4 text-lg leading-relaxed whitespace-pre-line">{task.body}</p>
 
-          <div className="mt-4">
-            {task.submission_id !== null ? (
-              <SubmissionView id={task.submission_id} maxPoints={task.points} />
-            ) : canSubmit ? (
-              <AnswerForm assignmentId={assignmentId} taskId={task.id} onSubmitted={onSubmitted} />
-            ) : (
-              <p className="text-sm text-ink-soft">Ответ не был отправлен.</p>
-            )}
-          </div>
-        </div>
+      <div className="mt-6">
+        {task.submission_id !== null ? (
+          <SubmissionView id={task.submission_id} maxPoints={task.points} />
+        ) : canSubmit ? (
+          <AnswerForm assignmentId={assignmentId} taskId={task.id} onSubmitted={onSubmitted} />
+        ) : (
+          <p className={`text-ink-soft ${MONO_LABEL}`}>Ответ не был отправлен</p>
+        )}
       </div>
     </li>
   );
@@ -207,30 +205,41 @@ function AnswerForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <label htmlFor={id} className="sr-only">
-        Ваш ответ
-      </label>
-      <textarea
-        id={id}
-        rows={4}
-        required
-        maxLength={MAX_ANSWER_LENGTH}
-        placeholder="Ваш ответ…"
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        className={`${INPUT} resize-y py-2.5 leading-relaxed`}
-      />
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div>
+        <label htmlFor={id} className={`text-ink-soft ${MONO_LABEL}`}>
+          Ваш ответ
+        </label>
+        <div className="relative mt-1">
+          <textarea
+            id={id}
+            rows={3}
+            required
+            maxLength={MAX_ANSWER_LENGTH}
+            placeholder="Напишите решение…"
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            className="peer block w-full resize-y rounded-none border-0 border-b-2 border-ink bg-transparent px-0 py-3 text-lg leading-relaxed outline-none placeholder:text-ink/25"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 bg-signal transition-transform duration-500 ease-swiss peer-focus:scale-x-100"
+          />
+        </div>
+      </div>
+
       {error && <FormError>{error}</FormError>}
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-ink-soft">Ответ можно отправить только один раз</span>
+
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <span className={`text-ink-soft ${MONO_LABEL}`}>Отправить можно один раз</span>
         <button
           type="submit"
           disabled={isLoading || answer.trim().length === 0}
+          aria-busy={isLoading}
           className={BUTTON_PRIMARY}
         >
-          {isLoading && <Spinner className="size-3.5" />}
-          Отправить
+          <span className="font-medium">{isLoading ? 'Отправляем' : 'Отправить'}</span>
+          {isLoading ? <Spinner className="bg-paper" /> : <Arrow />}
         </button>
       </div>
     </form>
@@ -240,39 +249,43 @@ function AnswerForm({
 function SubmissionView({ id, maxPoints }: { id: number; maxPoints: number }) {
   const { data, error } = useQuery(`submission-${id}`, () => getSubmission(id));
 
-  if (error) return <p className="text-sm text-danger">{translateError(error)}</p>;
-  if (!data) return <div aria-hidden className="skeleton h-12 rounded-lg" />;
+  if (error) return <FormError>{translateError(error)}</FormError>;
+  if (!data) return <div aria-hidden className="skeleton h-14" />;
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-lg bg-line/40 px-3.5 py-3">
-        <p className="text-xs text-ink-soft">Ваш ответ</p>
-        <p className="mt-1 text-sm leading-relaxed whitespace-pre-line text-ink">{data.answer_text}</p>
+    <div className="grid gap-6 border-l-2 border-ink/15 pl-5 sm:grid-cols-[1fr_auto]">
+      <div>
+        <p className={`text-ink-soft ${MONO_LABEL}`}>Ваш ответ</p>
+        <p className="mt-2 leading-relaxed whitespace-pre-line">{data.answer_text}</p>
+
+        {data.status === 'graded' && data.analys && (
+          <>
+            {data.analys.feedback && (
+              <p className="mt-4 text-sm leading-relaxed text-ink-soft">{data.analys.feedback}</p>
+            )}
+            {data.analys.weak_topics.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+                {data.analys.weak_topics.map((topic) => (
+                  <Tag key={topic} mark="signal">
+                    {topic}
+                  </Tag>
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
-      {data.status === 'pending' && <Badge tone="warning">На проверке</Badge>}
-      {data.status === 'failed' && <Badge tone="danger">Не удалось проверить</Badge>}
-      {data.status === 'graded' && data.analys && (
-        <div className="rounded-lg border border-line px-3.5 py-3">
-          <div className="flex items-center gap-2">
-            <Badge tone="success">Оценено</Badge>
-            <span className="text-sm font-semibold tabular-nums text-ink">
-              {data.analys.score}
-              <span className="font-normal text-ink-soft"> / {maxPoints}</span>
-            </span>
-          </div>
-          {data.analys.feedback && (
-            <p className="mt-2 text-sm leading-relaxed text-ink-soft">{data.analys.feedback}</p>
-          )}
-          {data.analys.weak_topics.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {data.analys.weak_topics.map((topic) => (
-                <Badge key={topic}>{topic}</Badge>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <div className="sm:text-right">
+        {data.status === 'pending' && <Tag mark="ochre">На проверке</Tag>}
+        {data.status === 'failed' && <Tag mark="signal">Не проверено</Tag>}
+        {data.status === 'graded' && data.analys && (
+          <p className="text-5xl font-semibold tracking-[-0.04em] tabular-nums">
+            {data.analys.score}
+            <span className="text-2xl text-ink-soft">/{maxPoints}</span>
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -305,8 +318,8 @@ function CompleteBar({
   }
 
   return (
-    <div className={`${CARD} space-y-3 p-5`}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="max-w-3xl space-y-4 border-t border-ink/15 pt-5">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <p className="text-sm text-ink-soft">
           {isReady
             ? 'Все ответы отправлены — можно завершать тест.'
@@ -316,13 +329,33 @@ function CompleteBar({
           type="button"
           onClick={handleComplete}
           disabled={!isReady || isLoading}
-          className={BUTTON_PRIMARY}
+          aria-busy={isLoading}
+          className={`${BUTTON_PRIMARY} sm:w-72`}
         >
-          {isLoading && <Spinner className="size-3.5" />}
-          Завершить тест
+          <span
+            aria-hidden
+            className="absolute inset-0 origin-left scale-x-0 bg-signal transition-transform duration-500 ease-swiss group-enabled:group-hover:scale-x-100"
+          />
+          <span className="relative text-lg font-medium tracking-tight">Завершить тест</span>
+          <span className="relative">{isLoading ? <Spinner className="bg-paper" /> : <Arrow />}</span>
         </button>
       </div>
       {error && <FormError>{error}</FormError>}
     </div>
+  );
+}
+
+function Arrow() {
+  return (
+    <svg
+      aria-hidden
+      width="28"
+      height="12"
+      viewBox="0 0 28 12"
+      fill="none"
+      className="transition-transform duration-500 ease-swiss group-enabled:group-hover:translate-x-1.5"
+    >
+      <path d="M0 6h26M21 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
   );
 }

@@ -33,13 +33,14 @@ export default function Login() {
   }
 
   return (
-    <div className="fade-in">
-      <AuthHeading title="С возвращением">
+    <div className="auth-enter">
+      <AuthHeading index="01" eyebrow="Вход" title="Вход в аккаунт">
         Введите почту и пароль, указанные при регистрации.
       </AuthHeading>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-12 space-y-9">
         <Field
+          index="01"
           label="Почта"
           type="email"
           name="email"
@@ -51,6 +52,7 @@ export default function Login() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <Field
+          index="02"
           label="Пароль"
           type="password"
           name="password"
@@ -59,21 +61,19 @@ export default function Login() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          labelAction={
-            <Link
-              href="/forgot-password"
-              className="rounded-sm text-xs text-ink-soft outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
-            >
-              Забыли пароль?
-            </Link>
-          }
         />
+        <div className="-mt-6 flex justify-end">
+          <Link
+            href="/forgot-password"
+            className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft underline-offset-4 outline-none hover:text-ink hover:underline focus-visible:text-ink focus-visible:underline"
+          >
+            Забыли пароль?
+          </Link>
+        </div>
 
         {error && <FormError>{error}</FormError>}
 
-        <div className="pt-2">
-          <SubmitButton isLoading={isLoading} label="Войти" loadingLabel="Входим…" />
-        </div>
+        <SubmitButton isLoading={isLoading} label="Войти" loadingLabel="Выполняется вход" />
       </form>
 
       <AuthSwitch question="Ещё нет аккаунта?" href="/register" label="Зарегистрироваться" />

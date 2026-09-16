@@ -11,16 +11,18 @@ function PasswordRuler({ length }: { length: number }) {
   const isEnough = length >= MIN_PASSWORD_LENGTH;
 
   return (
-    <div className="flex items-center gap-3">
-      <div aria-hidden className="h-1 flex-1 overflow-hidden rounded-full bg-line">
-        <div
-          className={`h-full rounded-full transition-[width,background-color] duration-300 ${
-            isEnough ? 'bg-success' : 'bg-accent'
-          }`}
-          style={{ width: `${(filled / MIN_PASSWORD_LENGTH) * 100}%` }}
-        />
+    <div className="flex items-center gap-4">
+      <div aria-hidden className="grid flex-1 grid-cols-12 gap-[3px]">
+        {Array.from({ length: MIN_PASSWORD_LENGTH }, (_, i) => (
+          <span
+            key={i}
+            className={`h-1.5 transition-colors duration-300 ${
+              i < filled ? (isEnough ? 'bg-ink' : 'bg-signal') : 'bg-ink/10'
+            }`}
+          />
+        ))}
       </div>
-      <span className="min-w-20 text-right text-xs tabular-nums text-ink-soft">
+      <span className="min-w-20 text-right font-mono text-[11px] uppercase tracking-[0.12em] tabular-nums text-ink-soft">
         <span className="sr-only">Минимум {MIN_PASSWORD_LENGTH} символов. </span>
         {isEnough ? 'Достаточно' : `${length} / ${MIN_PASSWORD_LENGTH}`}
       </span>
@@ -29,6 +31,7 @@ function PasswordRuler({ length }: { length: number }) {
 }
 
 export function NewPasswordFields({
+  indexes,
   label = 'Пароль',
   password,
   confirm,
@@ -37,6 +40,7 @@ export function NewPasswordFields({
   onConfirmChange,
   onConfirmBlur,
 }: {
+  indexes: [string, string];
   label?: string;
   password: string;
   confirm: string;
@@ -48,6 +52,7 @@ export function NewPasswordFields({
   return (
     <>
       <Field
+        index={indexes[0]}
         label={label}
         type="password"
         name="password"
@@ -61,6 +66,7 @@ export function NewPasswordFields({
         hint={<PasswordRuler length={password.length} />}
       />
       <Field
+        index={indexes[1]}
         label="Повторите пароль"
         type="password"
         name="password-confirm"
@@ -73,7 +79,7 @@ export function NewPasswordFields({
         invalid={isMismatch}
         hint={
           isMismatch ? (
-            <p className="text-xs text-danger">
+            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-signal-deep">
               Пароли не совпадают
             </p>
           ) : undefined

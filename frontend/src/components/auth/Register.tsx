@@ -54,20 +54,21 @@ export default function Register() {
 
   if (isRegistered) {
     return (
-      <AuthSuccess title="Аккаунт создан" href="/login" actionLabel="Перейти ко входу">
+      <AuthSuccess eyebrow="Готово" title="Аккаунт создан." href="/login" actionLabel="Перейти ко входу">
         Теперь войдите с почтой <span className="font-medium text-ink">{email}</span>.
       </AuthSuccess>
     );
   }
 
   return (
-    <div className="fade-in">
-      <AuthHeading title="Создать аккаунт">
+    <div className="auth-enter">
+      <AuthHeading index="02" eyebrow="Регистрация" title="Новый аккаунт">
         Нужны только почта и пароль. Новый аккаунт получает роль студента.
       </AuthHeading>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="mt-12 space-y-9">
         <Field
+          index="01"
           label="Почта"
           type="email"
           name="email"
@@ -79,6 +80,7 @@ export default function Register() {
           onChange={(e) => setEmail(e.target.value)}
         />
         <NewPasswordFields
+          indexes={['02', '03']}
           password={password}
           confirm={confirm}
           isMismatch={isMismatch}
@@ -89,9 +91,7 @@ export default function Register() {
 
         {error && <FormError>{error}</FormError>}
 
-        <div className="pt-2">
-          <SubmitButton isLoading={isLoading} label="Создать аккаунт" loadingLabel="Создаём аккаунт…" />
-        </div>
+        <SubmitButton isLoading={isLoading} label="Создать аккаунт" loadingLabel="Создаём аккаунт" />
       </form>
 
       <AuthSwitch question="Уже есть аккаунт?" href="/login" label="Войти" />

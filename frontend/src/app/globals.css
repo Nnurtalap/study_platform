@@ -5,78 +5,95 @@
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
-/* Спокойная палитра: почти белый фон, графитовый текст и один акцент */
 @theme {
-  --color-paper: #fafaf9;
-  --color-surface: #ffffff;
-  --color-ink: #18181b;
-  --color-ink-soft: #71717a;
-  --color-line: #e7e5e4;
-  --color-accent: #4f46e5;
-  --color-accent-soft: #eef2ff;
-  --color-success: #15803d;
-  --color-warning: #b45309;
-  --color-danger: #dc2626;
+  --color-paper: #f2eee6;
+  --color-ink: #121212;
+  --color-ink-soft: #5e5a52;
+  --color-signal: #e3411f;
+  --color-signal-deep: #b8300f;
+  --color-cobalt: #2448c6;
+  --color-ochre: #f1b51c;
 
-  --ease-soft: cubic-bezier(0.2, 0.7, 0.1, 1);
+  --ease-swiss: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-paper: #0c0c0e;
-    --color-surface: #151518;
-    --color-ink: #f4f4f5;
-    --color-ink-soft: #a1a1aa;
-    --color-line: #27272a;
-    --color-accent: #818cf8;
-    --color-accent-soft: #1e1b4b;
-    --color-success: #4ade80;
-    --color-warning: #fbbf24;
-    --color-danger: #f87171;
-    color-scheme: dark;
-  }
+:root {
+  --background: var(--color-paper);
+  --foreground: var(--color-ink);
 }
 
 body {
-  background: var(--color-paper);
-  color: var(--color-ink);
+  background: var(--background);
+  color: var(--foreground);
   font-family: var(--font-sans);
 }
 
 ::selection {
-  background: var(--color-accent);
-  color: var(--color-surface);
+  background: var(--color-signal);
+  color: var(--color-paper);
 }
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset;
+  -webkit-box-shadow: 0 0 0 1000px var(--color-paper) inset;
   -webkit-text-fill-color: var(--color-ink);
   caret-color: var(--color-ink);
 }
 
-/* Мягкое появление блоков по очереди */
-.fade-in > * {
-  animation: fade-in 500ms var(--ease-soft) both;
-}
-.fade-in > *:nth-child(2) {
-  animation-delay: 60ms;
-}
-.fade-in > *:nth-child(3) {
-  animation-delay: 120ms;
-}
-.fade-in > *:nth-child(4) {
-  animation-delay: 180ms;
-}
-.fade-in > *:nth-child(n + 5) {
-  animation-delay: 240ms;
+/* ——— Auth: poster ——— */
+
+.poster-grid {
+  background-image:
+    linear-gradient(to right, rgb(242 238 230 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(242 238 230 / 0.07) 1px, transparent 1px);
+  background-size: calc(100% / 12) calc(100% / 8);
 }
 
-@keyframes fade-in {
+.shape {
+  position: absolute;
+  transform-origin: center;
+  transition-property: left, top, width, height, transform, opacity;
+  transition-duration: 1100ms;
+  transition-timing-function: var(--ease-swiss);
+}
+
+.poster-line {
+  animation: poster-rise 900ms cubic-bezier(0.2, 0.7, 0.1, 1) both;
+}
+
+.ring-spin {
+  animation: spin 60s linear infinite;
+}
+
+@keyframes poster-rise {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ——— Auth: form ——— */
+
+.auth-enter > * {
+  animation: auth-enter 700ms cubic-bezier(0.2, 0.7, 0.1, 1) both;
+}
+.auth-enter > *:nth-child(2) {
+  animation-delay: 90ms;
+}
+.auth-enter > *:nth-child(3) {
+  animation-delay: 180ms;
+}
+.auth-enter > *:nth-child(4) {
+  animation-delay: 270ms;
+}
+
+@keyframes auth-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -84,13 +101,58 @@ input:-webkit-autofill:focus {
   }
 }
 
+.loader-tick {
+  animation: loader-tick 900ms ease-in-out infinite;
+}
+
+@keyframes loader-tick {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.success-disc {
+  animation: success-pop 700ms var(--ease-swiss) 200ms both;
+}
+
+@keyframes success-pop {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* ——— Home: learning cycle ——— */
+
+.stage-fill {
+  transform-origin: left;
+  animation: stage-fill 4200ms linear both;
+}
+
+.stage-strip:hover .stage-fill,
+.stage-strip:focus-within .stage-fill {
+  animation-play-state: paused;
+}
+
+@keyframes stage-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ——— Кабинет ——— */
+
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-line) 0%,
-    color-mix(in oklab, var(--color-line) 40%, transparent) 50%,
-    var(--color-line) 100%
-  );
+  background: linear-gradient(90deg, rgb(18 18 18 / 0.06) 0%, rgb(18 18 18 / 0.12) 50%, rgb(18 18 18 / 0.06) 100%);
   background-size: 200% 100%;
   animation: shimmer 1400ms linear infinite;
 }
@@ -105,7 +167,16 @@ input:-webkit-autofill:focus {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fade-in > *,
+  .shape {
+    transition: none;
+  }
+  /* без анимации полоса заполнена, и цикл не переключается сам */
+  .poster-line,
+  .ring-spin,
+  .auth-enter > *,
+  .loader-tick,
+  .success-disc,
+  .stage-fill,
   .skeleton {
     animation: none;
   }

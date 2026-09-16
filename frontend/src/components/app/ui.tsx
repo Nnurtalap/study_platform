@@ -1,42 +1,37 @@
 import type { ReactNode } from 'react';
 import type { AssignmentStatus, TaskDifficulty } from '@/api/assignments';
-import { CARD } from '@/components/ui/styles';
+import { MONO_LABEL } from '@/components/ui/styles';
 
-const TONES = {
-  neutral: 'bg-line/60 text-ink-soft',
-  accent: 'bg-accent-soft text-accent',
-  success: 'bg-success/10 text-success',
-  warning: 'bg-warning/10 text-warning',
-  danger: 'bg-danger/10 text-danger',
+// Цвет маркера — единственное, что отличает статусы; форма везде одна: квадрат
+const MARKS = {
+  ink: 'bg-ink',
+  soft: 'bg-ink/25',
+  signal: 'bg-signal',
+  cobalt: 'bg-cobalt',
+  ochre: 'bg-ochre',
 } as const;
 
-export type Tone = keyof typeof TONES;
+export type Mark = keyof typeof MARKS;
 
-export function Badge({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) {
+export function Tag({ mark = 'soft', children }: { mark?: Mark; children: ReactNode }) {
   return (
-    <span
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${TONES[tone]}`}
-    >
+    <span className={`inline-flex shrink-0 items-center gap-2 text-ink-soft ${MONO_LABEL}`}>
+      <span aria-hidden className={`size-2 ${MARKS[mark]}`} />
       {children}
     </span>
   );
 }
 
-export const STATUS: Record<AssignmentStatus, { label: string; tone: Tone }> = {
-  assigned: { label: 'Новое', tone: 'accent' },
-  in_progress: { label: 'В работе', tone: 'warning' },
-  completed: { label: 'Завершено', tone: 'success' },
-  overdue: { label: 'Просрочено', tone: 'danger' },
+export const STATUS: Record<AssignmentStatus, { label: string; mark: Mark }> = {
+  assigned: { label: 'Новое', mark: 'cobalt' },
+  in_progress: { label: 'В работе', mark: 'ochre' },
+  completed: { label: 'Завершено', mark: 'ink' },
+  overdue: { label: 'Просрочено', mark: 'signal' },
 };
 
-export function StatusBadge({ status }: { status: AssignmentStatus }) {
-  const { label, tone } = STATUS[status];
-  return (
-    <Badge tone={tone}>
-      <span aria-hidden className="size-1.5 rounded-full bg-current" />
-      {label}
-    </Badge>
-  );
+export function StatusTag({ status }: { status: AssignmentStatus }) {
+  const { label, mark } = STATUS[status];
+  return <Tag mark={mark}>{label}</Tag>;
 }
 
 export const DIFFICULTY: Record<TaskDifficulty, string> = {
@@ -45,82 +40,101 @@ export const DIFFICULTY: Record<TaskDifficulty, string> = {
   hard: 'Сложное',
 };
 
-export function PageHeader({
+export function Eyebrow({ children }: { children: ReactNode }) {
+  return (
+    <p className={`flex items-center gap-3 text-ink-soft ${MONO_LABEL}`}>
+      <span aria-hidden className="size-2 bg-signal" />
+      {children}
+    </p>
+  );
+}
+
+export function PageTitle({ children }: { children: ReactNode }) {
+  return (
+    <h1 className="mt-5 text-[clamp(2.5rem,5vw,4.5rem)] leading-[0.95] font-semibold tracking-[-0.045em] text-balance">
+      {children}
+    </h1>
+  );
+}
+
+export function Section({
+  index,
   title,
-  description,
+  aside,
   children,
 }: {
+  index: string;
   title: string;
-  description?: ReactNode;
-  children?: ReactNode;
+  aside?: ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4">
-      <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{title}</h1>
-        {description && <p className="mt-1.5 text-sm text-ink-soft">{description}</p>}
+    <section>
+      <div className="relative flex items-baseline justify-between gap-4 border-t-2 border-ink pt-3 pb-5">
+        <span aria-hidden className="absolute -top-0.5 left-0 h-0.5 w-6 bg-signal" />
+        <h2 className="flex items-baseline gap-3">
+          <span className={`text-ink-soft ${MONO_LABEL}`}>{index}</span>
+          <span className="text-sm font-medium">{title}</span>
+        </h2>
+        {aside && <span className={`text-ink-soft ${MONO_LABEL}`}>{aside}</span>}
       </div>
       {children}
-    </div>
+    </section>
   );
 }
 
-export function SectionTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
+export function Stats({ items }: { items: { label: string; value: number | string }[] }) {
   return (
-    <div className="mb-3 flex items-baseline justify-between gap-4">
-      <h2 className="text-sm font-medium text-ink">{children}</h2>
-      {aside && <span className="text-xs text-ink-soft">{aside}</span>}
-    </div>
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4 lg:gap-x-12">
+      {items.map((item) => (
+        <div key={item.label} className="border-t border-ink/15 pt-3">
+          <dt className={`text-ink-soft ${MONO_LABEL}`}>{item.label}</dt>
+          <dd className="mt-2 text-5xl font-semibold tracking-[-0.04em] tabular-nums">{item.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
-export function Stat({ label, value }: { label: string; value: number | string }) {
+export function Empty({ title, children }: { title: string; children?: ReactNode }) {
   return (
-    <div className={`${CARD} px-4 py-3.5`}>
-      <p className="text-xs text-ink-soft">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-ink">{value}</p>
-    </div>
-  );
-}
-
-export function EmptyState({ title, children }: { title: string; children?: ReactNode }) {
-  return (
-    <div className="rounded-xl border border-dashed border-line px-6 py-12 text-center">
-      <div
-        aria-hidden
-        className="mx-auto mb-4 grid size-10 place-items-center rounded-full bg-line/60 text-ink-soft"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M4 7h16M4 12h10M4 17h6"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-          />
-        </svg>
+    <div className="flex items-start gap-5 border-b border-ink/15 pb-8">
+      <span aria-hidden className="mt-1 size-5 shrink-0 rounded-full border border-dashed border-ink/40" />
+      <div>
+        <p className="font-medium">{title}</p>
+        {children && <p className="mt-1 max-w-md text-sm leading-relaxed text-ink-soft">{children}</p>}
       </div>
-      <p className="text-sm font-medium text-ink">{title}</p>
-      {children && <p className="mx-auto mt-1 max-w-sm text-sm text-ink-soft">{children}</p>}
     </div>
   );
 }
 
-export function SkeletonList({ rows = 3 }: { rows?: number }) {
+export function SkeletonRows({ rows = 3 }: { rows?: number }) {
   return (
-    <div aria-hidden className="space-y-2">
+    <div aria-hidden className="space-y-3">
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="skeleton h-18 rounded-xl" />
+        <div key={i} className="skeleton h-16" />
       ))}
     </div>
   );
 }
 
-export function Notice({ tone = 'accent', children }: { tone?: Tone; children: ReactNode }) {
+export function Notice({ mark = 'cobalt', children }: { mark?: Mark; children: ReactNode }) {
+  const border = { ink: 'border-ink', soft: 'border-ink/25', signal: 'border-signal', cobalt: 'border-cobalt', ochre: 'border-ochre' }[mark];
   return (
     <div
-      className={`flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm ${TONES[tone]}`}
+      className={`flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-l-4 bg-ink/[0.04] px-4 py-3 text-sm ${border}`}
     >
       {children}
+    </div>
+  );
+}
+
+export function ProgressBar({ value, total }: { value: number; total: number }) {
+  return (
+    <div aria-hidden className="grid h-1.5 flex-1 gap-[3px]" style={{ gridTemplateColumns: `repeat(${Math.max(total, 1)}, 1fr)` }}>
+      {Array.from({ length: Math.max(total, 1) }, (_, i) => (
+        <span key={i} className={i < value ? 'bg-ink' : 'bg-ink/10'} />
+      ))}
     </div>
   );
 }
