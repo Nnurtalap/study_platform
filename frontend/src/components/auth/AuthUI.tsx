@@ -1,11 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-
-const PRIMARY_BUTTON =
-  'group relative flex w-full cursor-pointer items-center justify-between overflow-hidden bg-ink px-6 py-5 text-left text-paper outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-4 focus-visible:ring-offset-paper disabled:cursor-wait';
-
-const TEXT_ACTION =
-  'cursor-pointer font-medium text-ink decoration-signal decoration-2 underline-offset-[6px] outline-none hover:underline focus-visible:underline';
+import { BUTTON_TEXT, BUTTON_WIDE, MONO_LABEL } from '@/components/ui/styles';
 
 export function AuthHeading({
   index,
@@ -20,7 +15,7 @@ export function AuthHeading({
 }) {
   return (
     <header>
-      <p className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+      <p className={`flex items-center gap-3 ${MONO_LABEL} text-ink-soft`}>
         <span aria-hidden className="size-2 bg-signal" />
         {index} / {eyebrow}
       </p>
@@ -35,7 +30,7 @@ export function AuthHeading({
 export function FormError({ children }: { children: ReactNode }) {
   return (
     <div role="alert" className="flex gap-4 border-l-4 border-signal bg-signal/8 px-4 py-3">
-      <span className="pt-0.5 font-mono text-[11px] uppercase tracking-[0.16em] text-signal-deep">
+      <span className={`pt-0.5 ${MONO_LABEL} text-signal-deep`}>
         Ошибка
       </span>
       <p className="text-sm leading-snug text-ink">{children}</p>
@@ -45,7 +40,7 @@ export function FormError({ children }: { children: ReactNode }) {
 
 export function LinkTokenNotice({ children }: { children: ReactNode }) {
   return (
-    <p className="flex items-center gap-3 border border-ink/15 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+    <p className={`flex items-center gap-3 border border-ink/15 px-4 py-3 ${MONO_LABEL} text-ink-soft`}>
       <span aria-hidden className="size-2 rounded-full bg-cobalt" />
       {children}
     </p>
@@ -97,7 +92,7 @@ export function SubmitButton({
   loadingLabel: string;
 }) {
   return (
-    <button type="submit" disabled={isLoading} aria-busy={isLoading} className={PRIMARY_BUTTON}>
+    <button type="submit" disabled={isLoading} aria-busy={isLoading} className={BUTTON_WIDE}>
       <ButtonContent label={isLoading ? loadingLabel : label} isLoading={isLoading} />
     </button>
   );
@@ -113,7 +108,7 @@ export function PrimaryLink({
   className?: string;
 }) {
   return (
-    <Link href={href} className={`${PRIMARY_BUTTON} ${className}`}>
+    <Link href={href} className={`${BUTTON_WIDE} ${className}`}>
       <ButtonContent label={label} />
     </Link>
   );
@@ -121,7 +116,7 @@ export function PrimaryLink({
 
 export function TextLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className={TEXT_ACTION}>
+    <Link href={href} className={BUTTON_TEXT}>
       {children}
     </Link>
   );
@@ -139,7 +134,7 @@ export function AuthSwitch({ question, label, href, onClick }: AuthSwitchProps) 
       {href ? (
         <TextLink href={href}>{label} →</TextLink>
       ) : (
-        <button type="button" onClick={onClick} className={TEXT_ACTION}>
+        <button type="button" onClick={onClick} className={BUTTON_TEXT}>
           {label} →
         </button>
       )}

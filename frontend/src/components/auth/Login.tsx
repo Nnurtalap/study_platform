@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { AuthHeading, AuthSwitch, FormError, SubmitButton } from './AuthUI';
 import { Field } from './Field';
 import { translateError } from './translateError';
+import { NAV_LINK } from '@/components/ui/styles';
 
 export default function Login() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function Login() {
         <div className="-mt-6 flex justify-end">
           <Link
             href="/forgot-password"
-            className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft underline-offset-4 outline-none hover:text-ink hover:underline focus-visible:text-ink focus-visible:underline"
+            className={NAV_LINK}
           >
             Забыли пароль?
           </Link>

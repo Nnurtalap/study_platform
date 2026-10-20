@@ -1,6 +1,9 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import type { AssignmentStatus, TaskDifficulty } from '@/api/assignments';
-import { MONO_LABEL } from '@/components/ui/styles';
+import { translateError } from '@/components/auth/translateError';
+import { BUTTON_TEXT, MONO_LABEL } from '@/components/ui/styles';
 
 // Цвет маркера — единственное, что отличает статусы; форма везде одна: квадрат
 const MARKS = {
@@ -129,6 +132,19 @@ export function Notice({ mark = 'cobalt', children }: { mark?: Mark; children: R
   );
 }
 
+// Ошибка, которая НЕ стирает уже показанные данные: упавшее фоновое обновление
+// должно оставлять страницу на месте и предлагать повторить запрос.
+export function RetryNotice({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+  return (
+    <Notice mark="signal">
+      <span role="alert">{translateError(error)}</span>
+      <button type="button" onClick={onRetry} className={BUTTON_TEXT}>
+        Повторить →
+      </button>
+    </Notice>
+  );
+}
+
 export function ProgressBar({ value, total }: { value: number; total: number }) {
   return (
     <div aria-hidden className="grid h-1.5 flex-1 gap-[3px]" style={{ gridTemplateColumns: `repeat(${Math.max(total, 1)}, 1fr)` }}>
@@ -139,6 +155,21 @@ export function ProgressBar({ value, total }: { value: number; total: number }) 
   );
 }
 
+export function Arrow() {
+  return (
+    <svg
+      aria-hidden
+      width="28"
+      height="12"
+      viewBox="0 0 28 12"
+      fill="none"
+      className="transition-transform duration-500 ease-swiss group-enabled:group-hover:translate-x-1.5"
+    >
+      <path d="M0 6h26M21 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
 const DATE_FORMAT = new Intl.DateTimeFormat('ru-RU', {
   day: 'numeric',
   month: 'long',
@@ -146,8 +177,12 @@ const DATE_FORMAT = new Intl.DateTimeFormat('ru-RU', {
   minute: '2-digit',
 });
 
-export function formatDate(value: string): string {
-  return DATE_FORMAT.format(new Date(value));
+// Intl бросает RangeError на нечисловой дате, а error boundary выше её не ждёт —
+// поэтому непарсящееся значение показываем как отсутствующее.
+export function formatDate(value: string): string | null {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return DATE_FORMAT.format(date);
 }
 
 export function plural(n: number, one: string, few: string, many: string): string {

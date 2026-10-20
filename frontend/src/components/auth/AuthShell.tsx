@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useIsSignedIn } from '@/hooks/useIsSignedIn';
 import AuthPoster, { type AuthVariant } from './AuthPoster';
+import { MONO_LABEL } from '@/components/ui/styles';
 
 const VARIANTS: Partial<Record<string, AuthVariant>> = {
   '/login': 'login',
@@ -91,7 +92,7 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
           <div className="w-full max-w-md">{children}</div>
         </div>
 
-        <footer className="flex justify-between border-t border-ink/15 pt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+        <footer className={`flex justify-between border-t border-ink/15 pt-4 ${MONO_LABEL} text-ink-soft`}>
           <span>© 2026</span>
           <span>Учебная платформа</span>
         </footer>

@@ -1,11 +1,11 @@
-import type { CSSProperties } from 'react';
+import ShapeComposition, { type ShapeLayout } from '@/components/ui/ShapeComposition';
+import { MONO_LABEL } from '@/components/ui/styles';
 
 export type AuthVariant = 'login' | 'register' | 'forgot' | 'reset' | 'verify' | 'logout';
-type Shape = 'sun' | 'bar' | 'arc' | 'ring' | 'dot' | 'line';
 
 // Одна и та же композиция перестраивается при переходе между страницами:
 // фигуры плавно меняют положение, размер и поворот.
-const COMPOSITION: Record<AuthVariant, Record<Shape, CSSProperties>> = {
+const COMPOSITION: Record<AuthVariant, ShapeLayout> = {
   login: {
     sun: { left: '4%', top: '4%', width: '48%' },
     bar: { left: '60%', top: '0%', width: '11%', height: '74%' },
@@ -73,7 +73,7 @@ export default function AuthPoster({ variant }: { variant: AuthVariant }) {
 
   return (
     <aside className="poster-grid relative isolate flex min-h-[19rem] flex-col overflow-hidden bg-ink p-6 text-paper sm:min-h-[26rem] sm:p-10 lg:sticky lg:top-0 lg:h-dvh lg:p-12">
-      <div className="relative z-10 flex items-start justify-between gap-4 font-mono text-[11px] uppercase tracking-[0.16em] text-paper/60">
+      <div className={`relative z-10 flex items-start justify-between gap-4 ${MONO_LABEL} text-paper/60`}>
         <span className="flex items-center gap-2.5 font-sans text-sm font-semibold normal-case tracking-tight text-paper">
           <span aria-hidden className="size-3 bg-signal" />
           Study Platform
@@ -84,16 +84,7 @@ export default function AuthPoster({ variant }: { variant: AuthVariant }) {
         <span>2026</span>
       </div>
 
-      <div aria-hidden className="relative my-6 flex-1">
-        <span className="shape aspect-square rounded-full bg-signal" style={layout.sun} />
-        <span className="shape bg-cobalt" style={layout.bar} />
-        <span className="shape aspect-[2/1] rounded-t-full bg-ochre" style={layout.arc} />
-        <span className="shape aspect-square" style={layout.ring}>
-          <span className="ring-spin block size-full rounded-full border border-dashed border-paper/50" />
-        </span>
-        <span className="shape aspect-square bg-paper" style={layout.dot} />
-        <span className="shape h-px bg-paper/70" style={layout.line} />
-      </div>
+      <ShapeComposition layout={layout} className="relative my-6 flex-1" />
 
       <div className="relative z-10">
         <p
@@ -109,7 +100,7 @@ export default function AuthPoster({ variant }: { variant: AuthVariant }) {
           ))}
         </p>
 
-        <ul className="mt-10 hidden grid-cols-3 gap-6 border-t border-paper/20 pt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-paper/60 lg:grid">
+        <ul className={`mt-10 hidden grid-cols-3 gap-6 border-t border-paper/20 pt-4 ${MONO_LABEL} text-paper/60 lg:grid`}>
           {PILLARS.map((item, i) => (
             <li key={item} className="flex flex-col gap-1">
               <span className="text-signal">{String(i + 1).padStart(2, '0')}</span>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useState, type InputHTMLAttributes, type ReactNode } from 'react';
+import { MONO_LABEL, NAV_LINK } from '@/components/ui/styles';
 
 type FieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'id' | 'className'> & {
   index: string;
@@ -20,7 +21,7 @@ export function Field({ index, label, hint, invalid, type = 'text', ...inputProp
       <div className="flex items-baseline justify-between gap-4">
         <label
           htmlFor={id}
-          className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft"
+          className={`${MONO_LABEL} text-ink-soft`}
         >
           <span className="mr-2 text-signal-deep">{index}</span>
           {label}
@@ -32,7 +33,7 @@ export function Field({ index, label, hint, invalid, type = 'text', ...inputProp
             onClick={() => setIsRevealed((value) => !value)}
             aria-controls={id}
             aria-pressed={isRevealed}
-            className="cursor-pointer font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft underline-offset-4 outline-none hover:text-ink hover:underline focus-visible:text-ink focus-visible:underline"
+            className={`cursor-pointer ${NAV_LINK}`}
           >
             {isRevealed ? 'Скрыть' : 'Показать'}
           </button>
