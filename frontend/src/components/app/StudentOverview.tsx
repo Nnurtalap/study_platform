@@ -1,53 +1,60 @@
 'use client';
 
 import Link from 'next/link';
-import { getMyAssignment, listMyAssignments, type StudentAssignmentDetail } from '@/api/assignments';
-import { translateError } from '@/components/auth/translateError';
-import { BUTTON_TEXT, MONO_LABEL } from '@/components/ui/styles';
+import {
+  getMyAssignment,
+  listMyAssignments,
+  type StudentAssignment,
+  type StudentAssignmentDetail,
+} from '@/api/assignments';
+import { MONO_LABEL } from '@/components/ui/styles';
 import { useQuery } from '@/hooks/useQuery';
 import {
   Empty,
   formatDate,
-  Notice,
   plural,
   ProgressBar,
+  RetryNotice,
   Section,
   SkeletonRows,
   Stats,
   StatusTag,
 } from './ui';
 
-// В списке нет названия теста и числа задач — дозапрашиваем карточки параллельно
-async function loadAssignments(): Promise<StudentAssignmentDetail[]> {
+// Список не содержит названия теста и числа задач — дозапрашиваем карточки.
+// allSettled, а не all: одна недоступная карточка не должна гасить весь список,
+// в строке остаются статус и срок, которые уже пришли со списком.
+type Row = { item: StudentAssignment; detail?: StudentAssignmentDetail };
+
+async function loadAssignments(): Promise<Row[]> {
   const list = await listMyAssignments();
-  return Promise.all(list.map((item) => getMyAssignment(item.id)));
+  const details = await Promise.allSettled(list.map((item) => getMyAssignment(item.id)));
+
+  return list.map((item, i) => {
+    const result = details[i];
+    return result.status === 'fulfilled' ? { item, detail: result.value } : { item };
+  });
 }
 
 export default function StudentOverview() {
   const { data, error, isLoading, reload } = useQuery('my-assignments', loadAssignments);
 
-  if (error) {
-    return (
-      <Notice mark="signal">
-        <span>{translateError(error)}</span>
-        <button type="button" onClick={reload} className={BUTTON_TEXT}>
-          Повторить →
-        </button>
-      </Notice>
-    );
-  }
+  // Ошибка без данных — единственный экран; ошибка поверх данных их не стирает
+  if (error && !data) return <RetryNotice error={error} onRetry={reload} />;
 
-  const assignments = data ?? [];
-  const count = (...statuses: StudentAssignmentDetail['status'][]) =>
-    data ? assignments.filter((item) => statuses.includes(item.status)).length : '—';
-  const active = assignments.filter((item) => item.status !== 'completed');
-  const done = assignments.filter((item) => item.status === 'completed');
+  const rows = data ?? [];
+  const count = (...statuses: StudentAssignment['status'][]) =>
+    data ? rows.filter((row) => statuses.includes(row.item.status)).length : '—';
+  const active = rows.filter((row) => row.item.status !== 'completed');
+  const done = rows.filter((row) => row.item.status === 'completed');
 
   return (
     <div className="space-y-14">
+      {error ? <RetryNotice error={error} onRetry={reload} /> : null}
+
       <Stats
         items={[
-          { label: 'Всего', value: data ? assignments.length : '—' },
+          { label: 'Всего', value: data ? rows.length : '—' },
           { label: 'В работе', value: count('assigned', 'in_progress') },
           { label: 'Завершено', value: count('completed') },
           { label: 'Просрочено', value: count('overdue') },
@@ -62,25 +69,27 @@ export default function StudentOverview() {
             Когда преподаватель назначит тест вам или вашей группе, он появится здесь.
           </Empty>
         ) : (
-          <AssignmentList items={active} />
+          <AssignmentList rows={active} />
         )}
       </Section>
 
       {done.length > 0 && (
         <Section index="02" title="Завершённые" aside={String(done.length).padStart(2, '0')}>
-          <AssignmentList items={done} />
+          <AssignmentList rows={done} />
         </Section>
       )}
     </div>
   );
 }
 
-function AssignmentList({ items }: { items: StudentAssignmentDetail[] }) {
+function AssignmentList({ rows }: { rows: Row[] }) {
   return (
     <ul>
-      {items.map((item) => {
-        const answered = item.tasks.filter((task) => task.submission_id !== null).length;
-        const total = item.tasks.length;
+      {rows.map(({ item, detail }) => {
+        const tasks = detail?.tasks;
+        const answered = tasks?.filter((task) => task.submission_id !== null).length ?? 0;
+        const total = tasks?.length ?? 0;
+        const due = item.due_date && formatDate(item.due_date);
 
         return (
           <li key={item.id} className="border-b border-ink/15">
@@ -90,23 +99,29 @@ function AssignmentList({ items }: { items: StudentAssignmentDetail[] }) {
             >
               <div className="min-w-0">
                 <p className="text-xl font-medium tracking-tight text-balance transition-colors sm:truncate group-hover:text-signal-deep group-focus-visible:text-signal-deep">
-                  {item.title}
+                  {detail?.title ?? `Тест № ${item.id}`}
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1">
                   <StatusTag status={item.status} />
                   <span className={`text-ink-soft ${MONO_LABEL}`}>
-                    {total} {plural(total, 'задание', 'задания', 'заданий')}
-                    {item.due_date && ` · до ${formatDate(item.due_date)}`}
+                    {tasks
+                      ? `${total} ${plural(total, 'задание', 'задания', 'заданий')}`
+                      : 'Детали не загрузились'}
+                    {due && ` · до ${due}`}
                   </span>
                 </div>
               </div>
 
-              <div className="hidden items-center gap-3 sm:flex">
-                <ProgressBar value={answered} total={total} />
-                <span className={`tabular-nums text-ink-soft ${MONO_LABEL}`}>
-                  {answered}/{total}
-                </span>
-              </div>
+              {tasks ? (
+                <div className="hidden items-center gap-3 sm:flex">
+                  <ProgressBar value={answered} total={total} />
+                  <span className={`tabular-nums text-ink-soft ${MONO_LABEL}`}>
+                    {answered}/{total}
+                  </span>
+                </div>
+              ) : (
+                <span className="hidden sm:block" />
+              )}
 
               <svg
                 aria-hidden

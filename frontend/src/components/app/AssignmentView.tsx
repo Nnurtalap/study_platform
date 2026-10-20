@@ -17,6 +17,7 @@ import Spinner from '@/components/ui/Spinner';
 import { BUTTON_PRIMARY, BUTTON_TEXT, MONO_LABEL } from '@/components/ui/styles';
 import { useQuery } from '@/hooks/useQuery';
 import {
+  Arrow,
   DIFFICULTY,
   Empty,
   Eyebrow,
@@ -25,6 +26,7 @@ import {
   PageTitle,
   plural,
   ProgressBar,
+  RetryNotice,
   SkeletonRows,
   StatusTag,
   Tag,
@@ -53,17 +55,16 @@ export default function AssignmentView({ id }: { id: number | null }) {
           Возможно, его сняли с назначения или ссылка неверна.{' '}
           <TextLink href="/dashboard">Ко всем тестам →</TextLink>
         </Empty>
-      ) : error ? (
-        <Notice mark="signal">
-          <span>{translateError(error)}</span>
-          <button type="button" onClick={reload} className={BUTTON_TEXT}>
-            Повторить →
-          </button>
-        </Notice>
+      ) : error && !data ? (
+        <RetryNotice error={error} onRetry={reload} />
       ) : isLoading && !data ? (
         <SkeletonRows rows={3} />
       ) : data ? (
-        <Assignment assignment={data} onChange={reload} />
+        <>
+          {/* Упавшее обновление оставляет тест на экране — иначе ответы «исчезают» */}
+          {error ? <RetryNotice error={error} onRetry={reload} /> : null}
+          <Assignment assignment={data} onChange={reload} />
+        </>
       ) : null}
     </div>
   );
@@ -80,13 +81,12 @@ function Assignment({
   const answered = tasks.filter((task) => task.submission_id !== null).length;
   const totalPoints = tasks.reduce((sum, task) => sum + task.points, 0);
   const isAllAnswered = tasks.length > 0 && answered === tasks.length;
+  const due = assignment.due_date && formatDate(assignment.due_date);
 
   return (
     <>
       <header>
-        <Eyebrow>
-          Тест{assignment.due_date && ` / до ${formatDate(assignment.due_date)}`}
-        </Eyebrow>
+        <Eyebrow>Тест{due && ` / до ${due}`}</Eyebrow>
         <PageTitle>{assignment.title}</PageTitle>
         {assignment.description && (
           <p className="mt-5 max-w-xl text-base leading-relaxed whitespace-pre-line text-ink-soft">
@@ -109,23 +109,30 @@ function Assignment({
         <Notice mark="signal">Срок сдачи истёк — отправить ответы уже нельзя.</Notice>
       )}
 
-      <ol className="max-w-3xl">
-        {tasks.map((task, i) => (
-          <TaskItem
-            key={task.id}
-            number={i + 1}
-            task={task}
-            assignmentId={assignment.id}
-            canSubmit={assignment.can_submit}
-            onSubmitted={onChange}
-          />
-        ))}
-      </ol>
+      {tasks.length === 0 ? (
+        <Empty title="В тесте нет заданий">
+          Преподаватель ещё не добавил задания — отвечать пока нечего.
+        </Empty>
+      ) : (
+        <ol className="max-w-3xl">
+          {tasks.map((task, i) => (
+            <TaskItem
+              key={task.id}
+              number={i + 1}
+              task={task}
+              assignmentId={assignment.id}
+              canSubmit={assignment.can_submit}
+              onSubmitted={onChange}
+            />
+          ))}
+        </ol>
+      )}
 
       {assignment.status === 'completed' ? (
         <Notice mark="ink">Тест завершён — оценки появятся у каждого ответа после проверки.</Notice>
       ) : (
-        assignment.can_submit && (
+        assignment.can_submit &&
+        tasks.length > 0 && (
           <CompleteBar
             assignmentId={assignment.id}
             isReady={isAllAnswered}
@@ -226,6 +233,7 @@ function AnswerForm({
   const storageKey = draftKey(assignmentId, taskId);
   const [answer, setAnswer] = useState(() => readDraft(storageKey));
   const [isLoading, setIsLoading] = useState(false);
+  const [isSent, setIsSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -236,12 +244,27 @@ function AnswerForm({
     try {
       await submitAnswer(assignmentId, taskId, answer.trim());
       writeDraft(storageKey, '');
+      // Ответ уже на сервере: форму не возвращаем, повторная отправка дала бы 409
+      setIsSent(true);
       onSubmitted();
     } catch (err) {
       setError(translateError(err));
-      setIsLoading(false);
       if (isStaleStateError(err)) onSubmitted();
+    } finally {
+      setIsLoading(false);
     }
+  }
+
+  // Обычно обновление данных размонтирует форму; если оно упало — объясняем состояние
+  if (isSent) {
+    return (
+      <Notice mark="ochre">
+        <span>Ответ отправлен — обновляем страницу.</span>
+        <button type="button" onClick={onSubmitted} className={BUTTON_TEXT}>
+          Обновить →
+        </button>
+      </Notice>
+    );
   }
 
   return (
@@ -295,7 +318,9 @@ function SubmissionView({ id, maxPoints }: { id: number; maxPoints: number }) {
   const { data, error, reload } = useQuery(`submission-${id}`, () => getSubmission(id));
   const isPending = data?.status === 'pending';
 
-  // Пока ответ на проверке, тихо опрашиваем сервер; в фоновой вкладке не тратим запросы
+  // Пока ответ на проверке, тихо опрашиваем сервер; в фоновой вкладке не тратим запросы.
+  // Интервал свой на каждый ответ: ИИ-оценка ещё не подключена (TODO Фаза 4 на бэкенде),
+  // так что объединять опрос в один запрос пока не на чем проверить.
   useEffect(() => {
     if (!isPending) return;
     const timer = window.setInterval(() => {
@@ -306,6 +331,9 @@ function SubmissionView({ id, maxPoints }: { id: number; maxPoints: number }) {
 
   if (!data && error) return <FormError>{translateError(error)}</FormError>;
   if (!data) return <div aria-hidden className="skeleton h-14" />;
+
+  // Слабые темы приходят от ИИ и могут повторяться — ключи должны остаться уникальными
+  const weakTopics = data.analys ? [...new Set(data.analys.weak_topics)] : [];
 
   return (
     <div className="grid gap-6 border-l-2 border-ink/15 pl-5 sm:grid-cols-[1fr_auto]">
@@ -318,9 +346,9 @@ function SubmissionView({ id, maxPoints }: { id: number; maxPoints: number }) {
             {data.analys.feedback && (
               <p className="mt-4 text-sm leading-relaxed text-ink-soft">{data.analys.feedback}</p>
             )}
-            {data.analys.weak_topics.length > 0 && (
+            {weakTopics.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
-                {data.analys.weak_topics.map((topic) => (
+                {weakTopics.map((topic) => (
                   <Tag key={topic} mark="signal">
                     {topic}
                   </Tag>
@@ -357,6 +385,7 @@ function CompleteBar({
   onCompleted: () => void;
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isDone, setIsDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleComplete() {
@@ -365,12 +394,25 @@ function CompleteBar({
 
     try {
       await completeAssignment(assignmentId);
+      setIsDone(true);
       onCompleted();
     } catch (err) {
       setError(translateError(err));
-      setIsLoading(false);
       if (isStaleStateError(err)) onCompleted();
+    } finally {
+      setIsLoading(false);
     }
+  }
+
+  if (isDone) {
+    return (
+      <Notice mark="ink">
+        <span>Тест завершён — обновляем страницу.</span>
+        <button type="button" onClick={onCompleted} className={BUTTON_TEXT}>
+          Обновить →
+        </button>
+      </Notice>
+    );
   }
 
   return (
@@ -398,20 +440,5 @@ function CompleteBar({
       </div>
       {error && <FormError>{error}</FormError>}
     </div>
-  );
-}
-
-function Arrow() {
-  return (
-    <svg
-      aria-hidden
-      width="28"
-      height="12"
-      viewBox="0 0 28 12"
-      fill="none"
-      className="transition-transform duration-500 ease-swiss group-enabled:group-hover:translate-x-1.5"
-    >
-      <path d="M0 6h26M21 1l5 5-5 5" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
   );
 }

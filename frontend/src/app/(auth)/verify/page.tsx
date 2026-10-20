@@ -5,11 +5,7 @@ export const metadata: Metadata = {
   title: 'Подтверждение почты',
 };
 
-export default async function VerifyPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}) {
+export default async function VerifyPage({ searchParams }: PageProps<'/verify'>) {
   const { token } = await searchParams;
 
   return <VerifyEmail initialToken={typeof token === 'string' ? token : undefined} />;

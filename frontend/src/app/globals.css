@@ -17,14 +17,9 @@
   --ease-swiss: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
-:root {
-  --background: var(--color-paper);
-  --foreground: var(--color-ink);
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--color-paper);
+  color: var(--color-ink);
   font-family: var(--font-sans);
 }
 
@@ -88,6 +83,11 @@ input:-webkit-autofill:focus {
 }
 .auth-enter > *:nth-child(4) {
   animation-delay: 270ms;
+}
+/* Дальше задержку не наращиваем: у страниц кабинета детей больше,
+   и без этого всё после четвёртого влетало одновременно */
+.auth-enter > *:nth-child(n + 5) {
+  animation-delay: 360ms;
 }
 
 @keyframes auth-enter {

@@ -13,7 +13,7 @@ import { BUTTON_TEXT, MONO_LABEL, NAV_LINK } from '@/components/ui/styles';
 import { useIsHydrated } from '@/hooks/useIsHydrated';
 import { useAccessToken } from '@/hooks/useIsSignedIn';
 import { useQuery } from '@/hooks/useQuery';
-import { SessionContext } from './session';
+import { isTeacherUser, SessionContext } from './session';
 
 const ROLE_LABELS: Record<UserRole, string> = {
   student: 'Студент',
@@ -21,7 +21,14 @@ const ROLE_LABELS: Record<UserRole, string> = {
   admin: 'Администратор',
 };
 
-const NAV = [{ href: '/dashboard', label: 'Обзор' }];
+const STUDENT_NAV = [{ href: '/dashboard', label: 'Обзор' }];
+
+const TEACHER_NAV = [
+  ...STUDENT_NAV,
+  { href: '/library', label: 'Библиотека' },
+  { href: '/tests', label: 'Тесты' },
+  { href: '/groups', label: 'Группы' },
+];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -60,6 +67,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const user = me.data;
+  // Разделов преподавателя у студента в меню просто нет — URL пришлось бы набрать руками
+  const nav = isTeacherUser(user) ? TEACHER_NAV : STUDENT_NAV;
 
   return (
     <SessionContext value={user}>
@@ -68,8 +77,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <span aria-hidden className="absolute -top-0.5 left-0 h-0.5 w-6 bg-signal" />
           <div className="flex items-center gap-8">
             <Logo href="/dashboard" />
-            <nav aria-label="Разделы" className="flex items-baseline gap-6">
-              {NAV.map((item) => {
+            <nav aria-label="Разделы" className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+              {nav.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
                 return (
                   <Link

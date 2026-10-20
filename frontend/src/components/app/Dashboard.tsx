@@ -1,7 +1,7 @@
 'use client';
 
 import { TextLink } from '@/components/auth/AuthUI';
-import { useUser } from './session';
+import { isTeacherUser, useUser } from './session';
 import StudentOverview from './StudentOverview';
 import TeacherOverview from './TeacherOverview';
 import { Empty, Eyebrow, Notice, PageTitle } from './ui';
@@ -9,7 +9,7 @@ import { Empty, Eyebrow, Notice, PageTitle } from './ui';
 export default function Dashboard() {
   const user = useUser();
   const name = user.email.split('@')[0];
-  const isTeacher = user.role === 'teacher' || user.is_superuser;
+  const isTeacher = isTeacherUser(user);
   const isStudent = user.role === 'student' && !isTeacher;
 
   return (
@@ -22,7 +22,7 @@ export default function Dashboard() {
         </PageTitle>
         <p className="mt-5 max-w-md text-base leading-relaxed text-ink-soft">
           {isTeacher
-            ? 'Библиотека предметов и заданий для ваших тестов.'
+            ? 'Соберите тест из заданий и назначьте его группе или студенту.'
             : 'Здесь собраны тесты, которые вам назначили.'}
         </p>
       </header>

@@ -1,35 +1,35 @@
 'use client';
 
 import Link from 'next/link';
+import { NAV_LINK } from '@/components/ui/styles';
+import { useIsHydrated } from '@/hooks/useIsHydrated';
 import { useIsSignedIn } from '@/hooks/useIsSignedIn';
 
-const NAV_LINK =
-  'font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft underline-offset-4 outline-none hover:text-ink hover:underline focus-visible:text-ink focus-visible:underline';
-
 export default function HomeNav() {
+  const isHydrated = useIsHydrated();
   const isSignedIn = useIsSignedIn();
 
+  // Токен виден только в браузере: до гидрации держим место, но не показываем
+  // гостевые ссылки вошедшему пользователю — иначе они на миг мелькают
+  const links = !isHydrated
+    ? []
+    : isSignedIn
+      ? [
+          { href: '/dashboard', label: 'Кабинет' },
+          { href: '/logout', label: 'Выйти' },
+        ]
+      : [
+          { href: '/login', label: 'Вход' },
+          { href: '/register', label: 'Регистрация' },
+        ];
+
   return (
-    <nav aria-label="Аккаунт" className="flex items-baseline gap-6">
-      {isSignedIn ? (
-        <>
-          <Link href="/dashboard" className={NAV_LINK}>
-            Кабинет
-          </Link>
-          <Link href="/logout" className={NAV_LINK}>
-            Выйти
-          </Link>
-        </>
-      ) : (
-        <>
-          <Link href="/login" className={NAV_LINK}>
-            Вход
-          </Link>
-          <Link href="/register" className={NAV_LINK}>
-            Регистрация
-          </Link>
-        </>
-      )}
+    <nav aria-label="Аккаунт" className="flex min-h-5 items-baseline gap-6">
+      {links.map((link) => (
+        <Link key={link.href} href={link.href} className={NAV_LINK}>
+          {link.label}
+        </Link>
+      ))}
     </nav>
   );
 }

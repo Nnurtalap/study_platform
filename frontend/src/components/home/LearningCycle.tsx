@@ -1,15 +1,15 @@
 'use client';
 
-import { useState, type CSSProperties } from 'react';
-
-type Shape = 'sun' | 'bar' | 'arc' | 'ring' | 'dot' | 'line';
+import { useState } from 'react';
+import ShapeComposition, { type ShapeLayout } from '@/components/ui/ShapeComposition';
+import { MONO_LABEL } from '@/components/ui/styles';
 
 // Цикл платформы: каждая стадия — своя композиция из одних и тех же фигур
 const STAGES: {
   index: string;
   label: string;
   text: string;
-  layout: Record<Shape, CSSProperties>;
+  layout: ShapeLayout;
 }[] = [
   {
     index: '01',
@@ -81,23 +81,14 @@ export default function LearningCycle() {
         aria-hidden
         className="poster-grid relative isolate aspect-square w-full self-center overflow-hidden bg-ink text-paper [background-size:12.5%_12.5%] lg:col-span-5 lg:col-start-8 lg:row-start-1"
       >
-        <div className="absolute inset-x-5 top-5 z-10 flex justify-between font-mono text-[11px] uppercase tracking-[0.16em] text-paper/60 sm:inset-x-7 sm:top-6">
+        <div className={`absolute inset-x-5 top-5 z-10 flex justify-between ${MONO_LABEL} text-paper/60 sm:inset-x-7 sm:top-6`}>
           <span>
             № {stage.index} — {stage.label}
           </span>
           <span>Цикл</span>
         </div>
 
-        <div className="absolute inset-[12%]">
-          <span className="shape aspect-square rounded-full bg-signal" style={stage.layout.sun} />
-          <span className="shape bg-cobalt" style={stage.layout.bar} />
-          <span className="shape aspect-[2/1] rounded-t-full bg-ochre" style={stage.layout.arc} />
-          <span className="shape aspect-square" style={stage.layout.ring}>
-            <span className="ring-spin block size-full rounded-full border border-dashed border-paper/50" />
-          </span>
-          <span className="shape aspect-square bg-paper" style={stage.layout.dot} />
-          <span className="shape h-px bg-paper/70" style={stage.layout.line} />
-        </div>
+        <ShapeComposition layout={stage.layout} className="absolute inset-[12%]" />
       </div>
 
       <ol className="stage-strip grid grid-cols-2 gap-x-6 gap-y-8 self-end lg:col-span-12 lg:row-start-2 lg:grid-cols-4 lg:gap-x-12">

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PrimaryLink } from '@/components/auth/AuthUI';
 import Logo from '@/components/ui/Logo';
+import { MONO_LABEL } from '@/components/ui/styles';
 
 export const metadata: Metadata = {
   title: 'Страница не найдена',
@@ -15,7 +16,7 @@ export default function NotFound() {
       </header>
 
       <main className="auth-enter flex flex-1 flex-col justify-center py-16">
-        <p className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+        <p className={`flex items-center gap-3 ${MONO_LABEL} text-ink-soft`}>
           <span aria-hidden className="size-2 bg-signal" />
           404 / Не найдено
         </p>
@@ -30,7 +31,7 @@ export default function NotFound() {
         <PrimaryLink href="/" label="На главную" className="mt-10 sm:w-72" />
       </main>
 
-      <footer className="flex justify-between border-t border-ink/15 pt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+      <footer className={`flex justify-between border-t border-ink/15 pt-4 ${MONO_LABEL} text-ink-soft`}>
         <span>© 2026</span>
         <span>Учебная платформа</span>
       </footer>
