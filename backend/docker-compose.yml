@@ -1,3 +1,13 @@
+x-app: &app
+  image: demo-email-auth:local
+  build: .
+  working_dir: /app/fastapi-application
+  env_file:
+    - fastapi-application/.env
+  volumes:
+    - ./fastapi-application:/app/fastapi-application
+  restart: unless-stopped
+  stop_grace_period: 70s
 services:
   pg:
     image: postgres:16-alpine
@@ -56,6 +66,7 @@ services:
         condition: service_healthy
 
   web:
+    <<: *app
     build: .
     container_name: my_running_app
     restart: unless-stopped
@@ -66,17 +77,95 @@ services:
     # Внутри сети compose база доступна по имени сервиса `pg` на порту 5432.
     # Значение из .env перекрывается здесь, чтобы контейнер не зависел
     # от того, на какой хост настроен .env для локального запуска.
-    environment:
+    environment: &app-env
       APP_CONFIG__DB__URL: postgresql+asyncpg://postgres:Nurtaa0077@pg:5432/app
     # Сначала выполняем миграции, затем запускаем Gunicorn с uvicorn-воркерами
-    command: sh -c "alembic upgrade head && gunicorn main:main_app -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --workers 4 --timeout 900"
+    command:
+      - gunicorn
+      - main:main_app
+      - -k
+      - uvicorn.workers.UvicornWorker
+      - -b
+      - 0.0.0.0:8000
+      - --workers
+      - "4"
+      - --timeout
+      - "900"
     depends_on:
-      pg:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     volumes:
       - ./fastapi-application:/app/fastapi-application
+  migrate:
+      <<: *app
+      environment: *app-env
+      restart: "no"
+      command: ["alembic", "upgrade", "head"]
+      depends_on:
+        pg:
+          condition: service_healthy
+
+  email-worker:
+    <<: *app
+    environment: *app-env
+    command:
+      - celery
+      - -A
+      - core.celery_app:celery_app
+      - worker
+      - --pool=prefork
+      - --concurrency=2
+      - --loglevel=INFO
+      - -Q
+      - email
+      - --hostname=email@%h
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  email-dispatcher:
+    <<: *app
+    environment: *app-env
+    command:
+      - celery
+      - -A
+      - core.celery_app:celery_app
+      - worker
+      - --pool=prefork
+      - --concurrency=1
+      - --loglevel=INFO
+      - -Q
+      - email_dispatch
+      - --hostname=dispatch@%h
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  email-beat:
+    <<: *app
+    environment: *app-env
+    command:
+      - celery
+      - -A
+      - core.celery_app:celery_app
+      - beat
+      - --loglevel=INFO
+      - --schedule=/var/lib/celery/celerybeat-schedule
+    volumes:
+      - ./fastapi-application:/app/fastapi-application
+      - email_beat_data:/var/lib/celery
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
 
 volumes:
   postgres_data:
   pgadmin_data:
   rabbitmq-data:
+  email_beat_data:

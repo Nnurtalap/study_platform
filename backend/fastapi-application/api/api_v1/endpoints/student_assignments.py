@@ -5,11 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.api_v1.dependencies.authentification.roles import (
     get_current_student,
+    get_current_teacher,
 )
 from core.models import User, db_helper
 from core.schemas.student_assignment import (
     StudentAssignmentDetail,
     StudentAssignmentRead,
+    StudentAssignmentResult,
 )
 from core.services import student_assignment_service as service
 
@@ -24,6 +26,10 @@ Session = Annotated[
 
 Student = Annotated[
     User, Depends(get_current_student)
+]
+
+Teacher = Annotated[
+    User, Depends(get_current_teacher)
 ]
 
 @router.get('', response_model=list[StudentAssignmentRead])
@@ -60,3 +66,15 @@ async def complete(
     return await service.complete_assignment(
         session, student.id, assignment_id
     )
+
+@router.get(
+    '/{assignment_id}/results',
+    response_model=StudentAssignmentResult
+)
+async def get_result(
+    session: Session,
+    student: Student, 
+    assignment_id: int,
+):
+    return await service.get_student_assignment_result(session, student.id, assignment_id)
+

@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1 \
     # так как сам Docker-контейнер уже является изолированным окружением
     POETRY_VIRTUALENVS_CREATE=false \
     POETRY_NO_INTERACTION=1 \
-    POETRY_VERSION=1.8.3
+    POETRY_VERSION=2.5.1
 
 # Устанавливаем poetry
 RUN pip install --no-cache-dir "poetry==$POETRY_VERSION"
@@ -18,8 +18,7 @@ WORKDIR /app
 # Шаг 1: Копируем только конфигурационные файлы зависимостей.
 # Это позволяет Docker кэшировать установку пакетов, если зависимост
 # не менялись.
-COPY pyproject.toml poetry.lock* ./
-
+COPY pyproject.toml poetry.lock ./
 # Шаг 2: Устанавливаем только продакшн-зависимости (без dev-пакетов типа pytest, ruff и т.д.)
 RUN poetry install --no-root --without dev --no-cache
 

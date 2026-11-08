@@ -1,8 +1,12 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 class SubjectCreate(BaseModel):
-    name: str
-    slug: str
+    model_config = ConfigDict(
+                str_strip_whitespace=True,
+                extra='forbid',
+            )
+    name: str = Field(min_length=1, max_length=100)
+    slug: str = Field(min_length=1, max_length=100)
 
 class SubjectRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -11,7 +15,11 @@ class SubjectRead(BaseModel):
     slug: str
 
 class TopicCreate(BaseModel):
-    topic: str
+    model_config = ConfigDict(
+            str_strip_whitespace=True,
+            extra='forbid',
+        )
+    topic: str = Field(min_length=1, max_length=150)
 
 class TopicRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)

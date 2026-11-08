@@ -18,6 +18,8 @@ if TYPE_CHECKING:
     from .test_assignment import TestAssignment
     from .analys import AIAnalysis
     from .user import User
+    from .submission_grade import SubmissionGrade
+   
 
 class Submission(Base, IntIdPkMixin):
     __table_args__ = (
@@ -46,3 +48,4 @@ class Submission(Base, IntIdPkMixin):
     test_assignment: Mapped["TestAssignment"] = relationship(back_populates="submissions")
     student: Mapped["User"] = relationship()
     
+    grade: Mapped[Optional['SubmissionGrade']] = relationship(back_populates='submission', cascade="all, delete-orphan",)

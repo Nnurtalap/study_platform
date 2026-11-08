@@ -17,3 +17,5 @@ README.md
 
 # Секреты не должны попадать в образ — их передаёт docker compose через env_file
 .env
+**/.env
+**/.env.*

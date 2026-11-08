@@ -2,14 +2,20 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
-from fastapi import HTTPException, status
+from fastapi import Depends, HTTPException, status
+from typing import (
+    Annotated,
+)
 
-from core.models import Submission, TestTask, TestAssignment, User
+
+from core.models import Submission, TestTask, TestAssignment, User, AssignmentStudent, SubmissionGrade
 from core.types.assignment_status import AssignmentStatus
 from core.types.submission_status import SubmissionStatus
-from core.schemas.submission import SubmissionCreate
+from core.schemas.submission import SubmissionCreate, SubmissionGradeCreate
 from datetime import datetime, timezone
-
+from api.api_v1.dependencies.authentification.roles import (
+    get_current_teacher,
+)
 from core.services.student_assignment_service import (
     get_progress,
     require_open,
@@ -92,7 +98,7 @@ async def create_student_submition(
             detail="You have already submitted an answer for this task",
         ) from exc
     await session.refresh(submission)
-    await session.refresh(submission, attribute_names=["analys"])
+    await session.refresh(submission, attribute_names=["analys", "grade"])
     return submission
 
 async def get_student_submission(
@@ -102,12 +108,121 @@ async def get_student_submission(
 ) -> Submission:
     result = await session.execute(
         select(Submission)
-        .options(selectinload(Submission.analys))
+        .options(selectinload(Submission.analys),
+                 selectinload(Submission.grade))
         .where(Submission.id == submission_id)
     )
     submission = result.scalar_one_or_none()
 
     if submission is None or submission.student_id != student_id:
         raise  HTTPException(status.HTTP_404_NOT_FOUND, detail="Submission not found")
-
+    
     return submission
+
+async def get_answer_and_check_owner(
+        session: AsyncSession, 
+        assignment_id: int, 
+        teacher_id: int,
+        limit: int = 50,
+        offset: int = 0
+) -> list[Submission]:
+    assignment = await session.scalar(
+        select(TestAssignment)
+        .where(
+            TestAssignment.assigned_by_id == teacher_id,
+            TestAssignment.id == assignment_id
+        )
+    )
+
+    if assignment is None:
+        raise HTTPException(status_code=404, detail='assignment is not found')
+    
+    answers = await session.scalars(
+        select(Submission)
+        .options(selectinload(Submission.grade))
+        .where(Submission.test_assignment_id == assignment.id)
+        .limit(limit)
+        .offset(offset)
+        .order_by(Submission.id)
+    )
+
+    return list(answers)
+
+async def grade_submission(
+        session: AsyncSession, 
+        submission_id: int, 
+        teacher_id: int, 
+        data: SubmissionGradeCreate
+) -> SubmissionGrade: 
+    submission = await session.scalar(
+        select(Submission)
+        .where(Submission.id == submission_id)
+        .with_for_update()
+    )
+
+    if submission is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='submission not found'
+        )
+
+    test_assignment = await session.scalar(
+        select(TestAssignment)
+        .where(
+            TestAssignment.id == submission.test_assignment_id,
+            TestAssignment.assigned_by_id == teacher_id
+        )
+    )
+
+    if test_assignment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='submission not found'
+        )
+
+    test_task = await session.scalar(
+        select(TestTask)
+        .where(
+            TestTask.task_id == submission.task_id,
+            TestTask.test_id == test_assignment.test_id
+        )
+    )
+
+    if test_task is None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Submission task is not part of the assigned test"
+        )
+
+    if test_task.points < data.score:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Score exceeds maximum points"
+        )
+
+    submission_grade = await session.scalar(
+        select(SubmissionGrade)
+        .where(SubmissionGrade.submission_id == submission_id)
+    )
+
+    if submission_grade is None:
+        submission_grade = SubmissionGrade(
+            submission_id=submission_id
+        )
+        session.add(submission_grade)
+    
+    submission_grade.score=data.score
+    submission_grade.feedback=data.feedback
+    submission_grade.graded_by_id=teacher_id
+    submission_grade.graded_at=datetime.now(timezone.utc)
+    submission.status=SubmissionStatus.GRADED
+
+    try:
+        await session.commit()            
+    except Exception:
+        await session.rollback()
+        raise 
+    
+    await session.refresh(submission_grade)
+
+    return submission_grade

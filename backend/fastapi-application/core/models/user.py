@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Enum, UniqueConstraint
+from sqlalchemy import Enum, Index, UniqueConstraint, func
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from fastapi_users_db_sqlalchemy import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
@@ -31,3 +31,8 @@ class User(Base, IntIdPkMixin,SQLAlchemyBaseUserTable[UserIdType]):
     def get_db(cls, session: 'AsyncSession'):
         return SQLAlchemyUserDatabase(session, User)
 
+Index(
+        "uq_users_email_lower",
+        func.lower(User.email),
+        unique=True,
+)

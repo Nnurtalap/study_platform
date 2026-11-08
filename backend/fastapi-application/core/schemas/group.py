@@ -1,10 +1,15 @@
 from typing import List 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class GroupCreate(BaseModel):
-    name: str
+    model_config = ConfigDict(
+            str_strip_whitespace=True,
+            extra='forbid',
+        )
+    name: str = Field(min_length=1, max_length=150)
 
 class EnrollmentCreate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
     student_email: EmailStr
 
 class StudentRead(BaseModel):
@@ -13,10 +18,12 @@ class StudentRead(BaseModel):
     email: str
 
 class GroupRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True
+            )
     id: int
-    name: str
-
+    name: str 
+    
 class GroupWithStudentsRead(BaseModel):
     id: int
     name: str

@@ -3,10 +3,17 @@ from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 class TestCreate(BaseModel):
-    title: str
+    model_config = ConfigDict(
+            str_strip_whitespace=True,
+            extra='forbid',
+        )
+    title: str = Field(min_length=1, max_length=255)
     description: Optional[str] = None
 
 class TestTaskCreate(BaseModel):
+    model_config = ConfigDict(
+                extra='forbid', 
+            )
     task_id: int = Field(gt=0)
     position: int = Field(gt=0)
     points: int = Field(gt=0)

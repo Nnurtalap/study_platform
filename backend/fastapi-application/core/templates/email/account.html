@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+</head>
+<body style="margin:0; padding:24px; background:#f2f5f9; font-family:Arial,sans-serif; color:#162033;">
+  <div style="max-width:560px; margin:auto; padding:32px; background:white; border:1px solid #e2e8f0; border-radius:16px;">
+    <p style="color:#2563eb; font-weight:bold;">
+      {{ brand }}
+    </p>
+
+    <h1 style="font-size:26px;">{{ title }}</h1>
+
+    <p style="line-height:1.6;">{{ description }}</p>
+
+    {% if code %}
+      <div style="padding:22px; text-align:center; background:#eff6ff; border-radius:12px; font-family:monospace; font-size:36px; letter-spacing:8px; color:#1d4ed8;">
+        {{ code }}
+      </div>
+
+      <p style="line-height:1.6;">
+        Код действует {{ minutes }} мин. с момента запроса.<br>
+        После повторного запроса используйте последний код.
+      </p>
+
+      <p style="line-height:1.6; color:#64748b;">
+        Никому не сообщайте код. Поддержка не запрашивает его.
+        Если вы не начинали эту операцию, проигнорируйте письмо.
+      </p>
+    {% else %}
+      <p style="line-height:1.6; color:#64748b;">
+        Если вы не выполняли эту операцию, обратитесь в поддержку.
+      </p>
+    {% endif %}
+
+    <p>
+      Поддержка:
+      <a href="mailto:{{ support_email }}" style="color:#2563eb;">
+        {{ support_email }}
+      </a>
+    </p>
+  </div>
+</body>
+</html>

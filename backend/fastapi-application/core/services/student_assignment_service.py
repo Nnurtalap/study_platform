@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import (
@@ -11,6 +11,7 @@ from core.models import (
     Test,
     TestAssignment,
     TestTask,
+    SubmissionGrade
 )
 from core.types.assignment_status import AssignmentStatus
 
@@ -197,3 +198,165 @@ async def complete_assignment(
     await session.commit()
 
     return assignment_response(assignment, progress)
+
+
+async def _calculate_assignment_results(
+    session: AsyncSession,
+    assignment: TestAssignment,
+    *,
+    student_id: int | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[dict]:
+    
+    statement = (
+        select(
+            AssignmentStudent.student_id.label('student_id'),
+            func.count(Submission.id).label('submitted_tasks'), 
+            func.count(SubmissionGrade.id).label('graded_tasks'),
+            func.coalesce(func.sum(SubmissionGrade.score), 0).label('earned_points')
+        )
+        .select_from(
+            AssignmentStudent
+        )
+        .outerjoin(
+            Submission,
+            (Submission.student_id == AssignmentStudent.student_id)
+            & (Submission.test_assignment_id == AssignmentStudent.assignment_id)
+        )
+        .outerjoin(
+            SubmissionGrade,
+            SubmissionGrade.submission_id == Submission.id
+        )
+        .where(
+            AssignmentStudent.assignment_id == assignment.id
+        )
+        
+    )
+
+    if student_id is not None:
+        statement = (statement.where(
+            AssignmentStudent.student_id == student_id
+        ))
+
+    statement = (
+        statement
+        .group_by(AssignmentStudent.student_id)
+        .order_by(AssignmentStudent.student_id)
+        .limit(limit)
+        .offset(offset)
+    )
+    
+    result = await session.execute(statement)
+    rows = result.mappings().all()
+    
+    result = await session.execute(
+            select(
+                func.count(TestTask.id),
+                func.coalesce(func.sum(TestTask.points), 0)
+            )
+            .where(TestTask.test_id == assignment.test_id)
+         )
+        
+    total_tasks, max_points = result.one()
+    
+    return [
+        {
+            'student_id': row['student_id'],
+            "total_tasks": total_tasks,
+            "max_points": max_points,
+            "submitted_tasks": row["submitted_tasks"],
+            "graded_tasks": row["graded_tasks"],
+            "earned_points": row["earned_points"],
+            "is_fully_graded": (
+                total_tasks > 0
+                and row["graded_tasks"] == total_tasks
+            )
+        }
+        for row in rows
+    ]
+    
+
+async def get_student_assignment_result(
+    session: AsyncSession,
+    student_id: int,
+    assignment_id: int,
+) -> dict:
+    assignment, progress = await get_progress(session, student_id, assignment_id)
+
+    rows = await _calculate_assignment_results(
+        session, 
+        assignment, 
+        student_id=student_id
+    )
+
+    if not rows:
+        raise HTTPException(
+            status_code=404, 
+            detail="Assignment not found"
+        )
+
+    student_result = rows[0]
+
+    student_result.pop("student_id")
+
+    return student_result
+
+async def get_teacher_student_assignment_result(
+    session: AsyncSession,
+    student_id: int,
+    assignment_id: int,
+    teacher_id: int
+) -> dict:
+    assignment, progress = await get_progress(session, student_id, assignment_id)
+
+    is_teacher_owner = assignment.assigned_by_id == teacher_id
+    
+    if not is_teacher_owner:
+        raise HTTPException(status_code=404, detail="Access denied")
+
+    rows = await _calculate_assignment_results(
+            session, 
+            assignment, 
+            student_id=student_id
+        )
+    
+    if not rows:
+        raise HTTPException(
+            status_code=404, 
+            detail="Assignment not found"
+        )
+
+    student_result = rows[0]
+
+    student_result.pop("student_id")
+    
+    return student_result
+
+
+async def get_teacher_assignment_results(
+    session: AsyncSession,
+    assignment_id: int,
+    teacher_id: int,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[dict]:
+    assignment = await session.scalar(
+        select(TestAssignment).where(
+            TestAssignment.id == assignment_id,
+            TestAssignment.assigned_by_id == teacher_id,
+        )
+    )
+
+    if assignment is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Assignment not found",
+        )
+
+    return await _calculate_assignment_results(
+        session,
+        assignment,
+        limit=limit,
+        offset=offset,
+    )

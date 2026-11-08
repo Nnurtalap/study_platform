@@ -13,7 +13,13 @@ __all__ = (
     'Subject',
     'Group',
     'Enrollment',
-    'AssignmentStudent'
+    "AssignmentStudent",
+    "EmailChallenge",
+    "EmailOutbox",
+    "AuthRateBucket",
+    "SubmissionGrade",
+    'Organization',
+    'OrganizationMembership'
 )
 
 from .access_token import AccessToken
@@ -31,3 +37,7 @@ from .subjects import Subject
 from .group import Group
 from .enrollment import Enrollment
 from .assignment_student import AssignmentStudent
+from .email_auth import EmailChallenge, EmailOutbox, AuthRateBucket
+from .submission_grade import SubmissionGrade 
+from .organization import Organization 
+from .organization_membership import OrganizationMembership 

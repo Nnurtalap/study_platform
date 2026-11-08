@@ -16,7 +16,7 @@ class Task(Base, IntIdPkMixin):
     created_by_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     title: Mapped[str] = mapped_column(String(255))
-    body: Mapped[str] = mapped_column(Text)  # текст вопроса
+    body: Mapped[str] = mapped_column(Text)  
     task_type: Mapped[TaskType] = mapped_column(
     SAEnum(
         TaskType,
