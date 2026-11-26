@@ -1,16 +1,15 @@
-from models.base import Base
-from models.mixins.int_id_pk import IntIdPkMixin
+from core.models.base import Base
+from core.models.mixins.int_id_pk import IntIdPkMixin
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, DateTime, UniqueConstraint, func, ForeignKey, Enum as SAEnum
 from datetime import datetime
-from types.organization_role import OrganizationRole
+from core.types.organization_role import OrganizationRole
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .organization import Organization
     from .user import User
 
-from organization import Organization
 class OrganizationMembership(Base, IntIdPkMixin):
     organization_id: Mapped[int] = mapped_column(ForeignKey('organizations.id', ondelete='CASCADE'))
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='RESTRICT'))

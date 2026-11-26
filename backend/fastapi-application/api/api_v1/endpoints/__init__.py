@@ -12,6 +12,7 @@ from .tests import router as test_router
 from .submissions import router as submission_router
 from .test_assignment import router as assignment_router
 from .student_assignments import router as student_assignments_router
+from .organizations import router as organization_router
 http_bearer = HTTPBearer(auto_error=False)
 
 router = APIRouter(
@@ -27,3 +28,4 @@ router.include_router(task_router)
 router.include_router(test_router)
 router.include_router(assignment_router)
 router.include_router(student_assignments_router)
+router.include_router(organization_router)

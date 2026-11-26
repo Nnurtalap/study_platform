@@ -1,5 +1,6 @@
 from typing import List 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from datetime import datetime
 
 class GroupCreate(BaseModel):
     model_config = ConfigDict(
@@ -28,3 +29,25 @@ class GroupWithStudentsRead(BaseModel):
     id: int
     name: str
     students: List[StudentRead]
+
+class OrganizationGroupCreate(GroupCreate):
+    teacher_id: int = Field(gt=0)
+
+class OrganizationGroupRead(GroupRead):
+    teacher_id: int
+    organization_id: int 
+
+class OrganizationEnnrolmentCreate(BaseModel):
+    model_config = ConfigDict(
+        extra = 'forbid'
+    )
+    student_id: int = Field(gt=0)
+
+class EnrollmentRead(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True
+    )
+    id: int
+    group_id: int
+    student_id: int 
+    joined_at: datetime

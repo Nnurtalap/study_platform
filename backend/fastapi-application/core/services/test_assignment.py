@@ -50,6 +50,7 @@ async def create_assignment(
             .where(
                 data.group_id == Group.id,  
                 Group.teacher_id == teacher.id,
+                Group.organization_id.is_(None)
             )
         )
         if group_result.scalar_one_or_none() is None:

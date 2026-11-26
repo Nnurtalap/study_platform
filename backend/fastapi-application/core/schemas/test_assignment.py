@@ -24,5 +24,11 @@ class TestAssignmentRead(BaseModel):
     group_id: Optional[int]
     due_date: Optional[datetime]
 
+class OrganizationGroupAssignmentCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    test_id: int = Field(gt=0)
+    due_date: AwareDatetime | None = None
+
  
      

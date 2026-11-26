@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 class Group(IntIdPkMixin, Base):
     name: Mapped[str] = mapped_column(String(150))
     teacher_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-
+    organization_id: Mapped[int | None] = mapped_column(ForeignKey('organizations.id', ondelete='RESTRICT'), index=True, nullable=True)
+    
     enrollments: Mapped[List["Enrollment"]] = relationship(back_populates="group",  cascade="all, delete-orphan")
     assignments: Mapped[List["TestAssignment"]] = relationship(back_populates="group")
